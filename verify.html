@@ -455,6 +455,44 @@ if (SCENE === 'layout'){
       }, 300);
     }
   ]);
+} else if (SCENE === 'migrate'){
+  var mt = keyOff(0);
+  var v2s = { seoyun: { time: '07:40', tasks: ['이불 정리', '아침밥', '세수', '가방', '물병', '방 정리'] } };
+  var v2c = { date: mt, data: {
+    seoyun: [true, true, false, false, false, false],
+    chaeyun: [true, false, false, false, false, false],
+    seungyun: [false, false, false, false, false, false]
+  } };
+  var stSeed = { seoyun: { slots: [{ date: keyOff(-1) }], completedBoards: 1 } };
+  var hiSeed = {}; hiSeed[keyOff(-1)] = { seoyun: { done: 6, total: 6, allDone: true } };
+  seq([
+    function(next){
+      seeded([
+        ['wdash.settings.v2', JSON.stringify(v2s)],
+        ['wdash.checks.v2', JSON.stringify(v2c)],
+        ['wdash.stamps.v1', JSON.stringify(stSeed)],
+        ['wdash.history.v1', JSON.stringify(hiSeed)]
+      ], function(){ next(); });
+    },
+    function(next){
+      var w = frame.contentWindow, d = frame.contentDocument;
+      assert('v2 설정 이전: 아침 6', countOn(d, '#checklistM .check-item') === 6, countOn(d, '#checklistM .check-item'));
+      assert('v2 설정 이전: 저녁 3', countOn(d, '#checklistE .check-item') === 3, countOn(d, '#checklistE .check-item'));
+      assert('출발 시각 유지', /07:40/.test(d.querySelector('.kid-dep b').textContent), d.querySelector('.kid-dep b').textContent);
+      assert('아침 항목 유지', /이불 정리/.test(d.querySelector('#checklistM .check-item .txt').textContent), d.querySelector('#checklistM .check-item .txt').textContent);
+      assert('체크 이전 2/6', d.getElementById('checkCountM').textContent === '2/6', d.getElementById('checkCountM').textContent);
+      assert('저녁 0/3', d.getElementById('checkCountE').textContent === '0/3', d.getElementById('checkCountE').textContent);
+      assert('탭 2/9', /2\/9/.test(d.querySelector('.tab-badge').textContent), d.querySelector('.tab-badge').textContent);
+      var s3 = JSON.parse(w.localStorage.getItem('wdash.settings.v3') || '{}');
+      assert('v3 설정 생성', !!s3.seoyun && s3.seoyun.morning.length === 6 && s3.seoyun.evening.length === 3, JSON.stringify(s3.seoyun));
+      var c3 = JSON.parse(w.localStorage.getItem('wdash.checks.v3') || '{}');
+      assert('v3 체크 생성', !!c3.data && !!c3.data.seoyun.morning && c3.data.seoyun.morning[0] === true, JSON.stringify(c3.data && c3.data.seoyun));
+      var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
+      assert('도장 유지', ((st.seoyun || {}).slots || []).length === 1 && st.seoyun.completedBoards === 1, JSON.stringify(st.seoyun));
+      assert('배지 도장 1/10', /1/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
+      next();
+    }
+  ]);
 } else if (SCENE === 'demo' || SCENE === 'demoset'){
   var view = Q.get('view') || '';
   var t6 = [true, true, true, true, true, true];
