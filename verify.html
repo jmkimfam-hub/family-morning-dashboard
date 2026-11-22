@@ -206,7 +206,7 @@ if (SCENE === 'layout'){
         d.querySelectorAll('.check-item')[2].click();
         setTimeout(function(){
           assert('체크 풀어도 도장 유지', stampsOf(w).slots.length === 1, JSON.stringify(stampsOf(w).slots));
-          assert('배지 1/10', /1/.test(badgeText(d)) && !/확인 대기/.test(badgeText(d)), badgeText(d));
+          assert('배지 점 1개', d.querySelectorAll('#stampBadge .stamp-mini i.on').length === 1, d.querySelectorAll('#stampBadge .stamp-mini i.on').length);
           d.querySelectorAll('.check-item')[2].click();
           setTimeout(function(){
             assert('재체크 중복 없음', stampsOf(w).slots.length === 1, JSON.stringify(stampsOf(w).slots));

@@ -1352,15 +1352,17 @@ function postSheet(kidId){
   const k = kidById(kidId);
   if (!k) return;
   const d = dayKey();
-  const r = histOf(kidId, d);
+  const arr = ensureChecks(k);
+  const total = k.tasks.length;
+  const done = arr.filter(Boolean).length;
   const st = stampOf(kidId);
   const payload = {
     date: d,
     kidId: k.id,
     kidName: k.name,
-    done: r ? r.done : 0,
-    total: r ? r.total : k.tasks.length,
-    allDone: !!(r && r.allDone),
+    done: done,
+    total: total,
+    allDone: total > 0 && done === total,
     stampsCount: st.slots.length,
     completedBoards: st.completedBoards,
     todayStamped: stampIndexForToday(kidId) >= 0,
