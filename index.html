@@ -501,6 +501,8 @@ body{
   flex:1 1 0%;padding-left:11px;
   border-left:1.5px dashed rgba(160,175,210,.38);
 }
+.check-wrap.one .sec-m{flex:1 1 100%;padding-right:0}
+.check-wrap.one .sec-m .check-item{width:calc(33.333% - 8px)}
 .check-sec .checklist{
   flex:0 1 auto;min-height:0;
   display:flex;flex-wrap:wrap;align-content:flex-start;
@@ -1712,15 +1714,17 @@ function renderKid(){
     +   '<div class="count-line"><div class="countdown" id="countdown"><span id="cdPlain">–</span><span id="cdNums" style="display:none"><span id="cdH">0</span><span class="u" id="cdHU">시간</span><span id="cdM">00</span><span class="u">분</span><span id="cdS">00</span><span class="u">초</span></span></div><div class="cd-note" id="cdNote"></div></div>'
     +   '<div class="progress"><div class="bar" id="bar"></div></div>'
     + '</div>'
-    + '<div class="check-wrap" id="checkWrap">'
+    + '<div class="check-wrap' + (k.evening.length ? '' : ' one') + '" id="checkWrap">'
     +   '<div class="check-sec sec-m">'
     +     '<div class="check-head"><h3>☀️ 아침 준비</h3><span class="check-count" id="checkCountM">' + morningDone(k) + '/' + k.morning.length + '</span>' + stampBadgeHTML(k) + '</div>'
     +     '<div class="checklist" id="checklistM"></div>'
     +   '</div>'
-    +   '<div class="check-sec sec-e">'
-    +     '<div class="check-head"><h3>🌙 저녁 마무리</h3><span class="check-count" id="checkCountE">' + eveningDone(k) + '/' + k.evening.length + '</span></div>'
-    +     '<div class="checklist" id="checklistE"></div>'
-    +   '</div>'
+    +   (k.evening.length
+        ? '<div class="check-sec sec-e">'
+          + '<div class="check-head"><h3>🌙 저녁 마무리</h3><span class="check-count" id="checkCountE">' + eveningDone(k) + '/' + k.evening.length + '</span></div>'
+          + '<div class="checklist" id="checklistE"></div>'
+          + '</div>'
+        : '')
     + '</div>'
     + '<div class="kid-foot' + (totalOf(k) > 0 && done === totalOf(k) ? ' all' : '') + '" id="kidFoot">'
     +   '<span class="spark">🌈</span><span id="footText"></span></div>';
