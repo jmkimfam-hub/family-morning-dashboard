@@ -382,6 +382,7 @@ if (SCENE === 'layout'){
     hist[k] = { seoyun: { done: 6, total: 6, allDone: true, tasks: [true, true, true, true, true, true] } };
   }
   var stampSeed = { seoyun: { slots: slots9, completedBoards: 0 } };
+  hist[today2] = { seoyun: { done: 6, total: 6, allDone: true, tasks: [true, true, true, true, true, true] } };
   var checksSeed = { date: today2, data: {
     seoyun: [true, true, true, true, true, true],
     chaeyun: [false, false, false, false, false, false],
@@ -418,8 +419,8 @@ if (SCENE === 'layout'){
               var s3 = st3.seoyun || {};
               assert('새 판 0칸', (s3.slots || []).length === 0, JSON.stringify(s3.slots));
               assert('완성한 판 1판', s3.completedBoards === 1, s3.completedBoards);
-              assert('배지 0/10', /0/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
-              assert('새 판에서 확인 대기', /확인 대기/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
+              assert('새 판에서도 오늘 도장 완료 표시', /도장 완료/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
+              assert('새 판에 오늘 도장 다시 안 찍힘', /이미 받았어요/.test(d.getElementById('histBody').textContent), d.getElementById('histBody').textContent.replace(/\s+/g, ' ').slice(0, 90));
               d.getElementById('histCloseBtn').click();
               setTimeout(next, 200);
             }, 300);
@@ -428,28 +429,23 @@ if (SCENE === 'layout'){
       }, 300);
     },
     function(next){
-      /* 오늘 다시 승인 → 새 판 첫 칸. 같은 날 두 번은 불가 */
+      /* 새 판 상태와 기록 통계 */
       var d = frame.contentDocument, w = frame.contentWindow;
       d.getElementById('histBtn').click();
       setTimeout(function(){
         d.querySelector('[data-hview="stamp"]').click();
         setTimeout(function(){
-          var b1 = d.querySelector('[data-act="approve"]');
-          assert('새 판에서 승인 버튼', !!b1);
-          if (b1) b1.click();
+          assert('같은 날 재승인 버튼 없음', !d.querySelector('[data-act="approve"]'));
+          var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
+          assert('새 판에 추가 도장 없음', ((st.seoyun || {}).slots || []).length === 0, JSON.stringify((st.seoyun || {}).slots));
+          d.querySelector('[data-hview="history"]').click();
           setTimeout(function(){
-            var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
-            assert('새 판에 1칸', ((st.seoyun || {}).slots || []).length === 1, JSON.stringify((st.seoyun || {}).slots));
-            assert('같은 날 재승인 불가', !d.querySelector('[data-act="approve"]'));
-            var body = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
-            assert('연속 성공 10일', /연속 성공\s*10일/.test(body), body.slice(0, 120));
-            d.querySelector('[data-hview="history"]').click();
-            setTimeout(function(){
-              var h = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
-              assert('이번 달 10회', /이번 달\s*10회/.test(h), h.slice(0, 120));
-              next();
-            }, 250);
-          }, 300);
+            var h = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
+            log('  stats=' + h.slice(0, 120));
+            assert('연속 성공 10일', /연속 성공\s*10일/.test(h), h.slice(0, 120));
+            assert('이번 달 10회', /이번 달\s*10회/.test(h), h.slice(0, 120));
+            next();
+          }, 250);
         }, 300);
       }, 300);
     }

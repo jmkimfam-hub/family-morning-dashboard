@@ -1337,6 +1337,12 @@ function allDoneOf(k){
   return k.tasks.length > 0 && arr.filter(Boolean).length === k.tasks.length;
 }
 
+/* 오늘 도장을 받았는지 (지난 판에 찍혀 보관된 경우도 포함) */
+function todayEarned(kidId){
+  if (stampIndexForToday(kidId) >= 0) return true;
+  return stampOf(kidId).used.indexOf(dayKey()) >= 0;
+}
+
 /* 오늘 도장 상태: stamped(부모 확인 완료) / full(판이 가득 참) / waiting(부모 확인 대기) / none */
 function todayStampState(kidId){
   if (stampIndexForToday(kidId) >= 0) return 'stamped';
@@ -1365,7 +1371,7 @@ function postSheet(kidId){
     allDone: total > 0 && done === total,
     stampsCount: st.slots.length,
     completedBoards: st.completedBoards,
-    todayStamped: stampIndexForToday(kidId) >= 0,
+    todayStamped: todayEarned(kidId),
     updatedAt: new Date().toISOString()
   };
   try {
@@ -1540,7 +1546,7 @@ function stampBadgeHTML(k){
   const st = stampOf(k.id);
   const n = st.slots.length;
   const full = n >= STAMP_SLOTS;
-  const stamped = stampIndexForToday(k.id) >= 0;
+  const stamped = todayEarned(k.id);
   const waiting = !full && !stamped && allDoneOf(k);
   let dots = '';
   for (let i = 0; i < STAMP_SLOTS; i++){
@@ -1763,7 +1769,7 @@ function updateFoot(now){
   foot.classList.toggle('all', all);
   let msg;
   if (all){
-    msg = (stampIndexForToday(k.id) >= 0)
+    msg = todayEarned(k.id)
       ? '오늘 도장도 받았어요! 정말 잘했어 🎟️'
       : '다 했어요! 엄마·아빠 확인 받고 도장 받자 ⏳';
   }
@@ -1805,7 +1811,7 @@ function toggleTask(kidId, idx){
       celebrated[key] = true;
       celebrate(kidId);
     }
-    toast(stampIndexForToday(kidId) >= 0
+    toast(todayEarned(kidId)
       ? k.name + ' 준비 끝! 오늘 도장도 받았어 🎟️'
       : k.name + ' 준비 끝! 엄마·아빠 확인 받고 도장 받자 ⏳');
   }
@@ -2457,6 +2463,7 @@ function renderStampView(k){
   const done = arr.filter(Boolean).length;
   const total = k.tasks.length;
   const stamped = stampIndexForToday(k.id) >= 0;
+  const earned = stamped || st.used.indexOf(dayKey()) >= 0;
   const all = total > 0 && done === total;
   const mdToday = stampDateLabel(dayKey());
   let todayBox;
@@ -2464,6 +2471,9 @@ function renderStampView(k){
     todayBox = '<div class="stamp-today on"><b>✅ 오늘(' + mdToday + ') 도장 발급 완료!</b>'
       + '<p>부모님이 확인하고 도장을 찍어 줬어요.</p>'
       + '<button type="button" class="undo-stamp" data-act="unstamp">잘못 찍었을 때만: 오늘 도장 취소</button></div>';
+  } else if (earned){
+    todayBox = '<div class="stamp-today on"><b>✅ 오늘(' + mdToday + ') 도장을 이미 받았어요</b>'
+      + '<p>완성한 판에 찍힌 도장이라 새 판에는 다시 찍히지 않아요.</p></div>';
   } else if (full){
     todayBox = '<div class="stamp-today wait"><b>🎁 도장판이 가득 찼어요</b>'
       + '<p>선물을 주고 새 도장판을 시작한 뒤 오늘 도장을 찍어 주세요.</p></div>';
@@ -2487,7 +2497,7 @@ function renderStampView(k){
           + '<div class="board-actions"><button type="button" class="btn primary" data-act="newboard">🎁 선물 주고 새 도장판 시작</button></div>'
         : '')
     + (st.pending.length ? '<p class="pending-note">기다리는 도장 ' + st.pending.length + '개 · 새 판을 시작하면 차례대로 붙어요</p>' : '')
-    + '<p class="board-hint">' + (stamped
+    + '<p class="board-hint">' + (earned
         ? '도장은 부모님이 확인해 찍어 준 기록이에요. 체크를 풀어도 이미 찍은 도장은 그대로 남아요.'
         : '도장은 부모님이 확인해 찍어 줄 때만 붙어요. 아이가 스스로 찍을 수 없어요.') + '</p>'
     + '</div>';
@@ -2572,8 +2582,8 @@ function approveToday(kidId){
     toast('아이가 오늘 할 일을 다 채우면 도장을 찍어 줄 수 있어요');
     return;
   }
-  if (stampIndexForToday(kidId) >= 0){
-    toast('오늘 도장은 이미 찍었어요');
+  if (stampIndexForToday(kidId) >= 0 || todayEarned(kidId)){
+    toast('오늘 도장은 이미 받았어요');
     return;
   }
   const res = grantStamp(kidId);
