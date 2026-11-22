@@ -3,12 +3,8 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* TEST-ONLY shim: 평일 아침(2026-11-23 07:20 KST)을 흉내낸다. */
-(function(){
-  var T0 = Date.now(); var TARGET = 1795386000000;
-  var RN = Date.now;
-  Date.now = function(){ return TARGET + (RN() - T0); };
-})();
+/* TEST-ONLY: 평일 아침(2026-11-23 07:20 KST) 흉내 */
+(function(){var T0=Date.now();var TARGET=1795386000000;var RN=Date.now;Date.now=function(){return TARGET+(RN()-T0);};})();
 </script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -271,7 +267,8 @@ body{
 .tab-name em{font-style:normal;font-size:.68em;font-weight:800;color:var(--ink-3);margin-left:2px}
 .tab-sub{display:block;font-size:10.5px;font-weight:800;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab-badge{
-  position:absolute;top:-7px;right:-4px;min-width:38px;text-align:center;
+  position:relative;top:auto;right:auto;margin-left:8px;-webkit-flex:0 0 auto;flex:0 0 auto;
+  min-width:40px;text-align:center;
   font-size:10.5px;font-weight:900;letter-spacing:.2px;color:#fff;background:var(--kid-deep,#8d9ac0);
   border-radius:999px;padding:3px 7px;box-shadow:0 3px 8px rgba(125,142,180,.3);border:2px solid #fff;
   transition:background .2s ease, transform .2s ease;
@@ -473,7 +470,7 @@ body{
   .tab-body{width:100%}
   .tab-sub{display:none}
   .tab.active::after{display:none}
-  .tab-badge{top:-6px;right:6px}
+  .tab-badge{position:absolute;top:-6px;right:6px;margin-left:0}
   .kid-panel{min-height:430px;min-height:min(430px,58dvh)}
   .kid-panel > * + *{margin-top:8px}
   .checklist{overflow:visible}
@@ -483,6 +480,35 @@ body{
 @media (max-width:620px){
   .clock{font-size:30px}
   .pill{font-size:12px;padding:8px 11px}
+}
+
+/* ---------- 낮은 화면 (가로 1024x600 같은 구형 태블릿) ---------- */
+@media (max-height:700px) and (orientation:landscape){
+  .app{padding:8px 12px 10px}
+  .topbar{padding:6px 14px;margin-bottom:8px}
+  .clock{font-size:30px}
+  .common{height:190px;margin-bottom:8px}
+  .tabs{margin-bottom:8px}
+  .tab{min-height:46px;padding:5px 10px}
+  .tab-avatar{width:32px;height:32px}
+  .tab-name{font-size:14px}
+  .tab-sub{font-size:10px;margin-top:1px}
+  .kid-panel{padding:8px 14px}
+  .kid-panel > * + *{margin-top:4px}
+  .kid-avatar{width:32px;height:32px}
+  .kid-title h2{font-size:17px}
+  .count-box{padding:5px 12px 7px}
+  .countdown{font-size:28px}
+  .count-box.over .countdown,.count-box.weekend .countdown{font-size:24px}
+  .progress{height:10px;margin-top:4px}
+  .check-item{min-height:34px;margin:0 4px 6px}
+  .kid-foot{min-height:16px;font-size:11px}
+  .wx-icon{font-size:26px}
+  .wx-temp{font-size:24px}
+  .wx-state{margin-top:2px}
+  .wx-chips{margin-top:5px}
+  .wx-tip{margin-top:4px}
+  .dust{margin-top:4px}
 }
 
 @media (prefers-reduced-motion:reduce){
