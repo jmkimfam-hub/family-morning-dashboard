@@ -430,10 +430,14 @@ if (SCENE === 'layout'){
   } };
   var settingsSeed2 = null;
   if (SCENE === 'demoset'){
-    settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50', tasks: [
-      '이불 정리하기', '아침밥 먹기', '세수·양치하기', '시간표 보고 숙제·책·준비물 챙기기',
-      '물병·우산 챙기기', '책상이랑 방 정리하기', '저녁 설거지 돕기', '내일 가방 미리 싸기'
-    ] } });
+    var t12 = ['이불 정리하기', '아침밥 먹기', '세수·양치하기', '시간표 보고 숙제·책·준비물 챙기기',
+      '물병·우산 챙기기', '책상이랑 방 정리하기', '저녁 설거지 돕기', '내일 가방 미리 싸기',
+      '저녁 숙제 마무리', '욕실 정리하기', '내일 옷 미리 꺼내기', '가족에게 인사하기'];
+    if (Q.get('tasks') === '12'){
+      settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50', tasks: t12 } });
+    } else {
+      settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50', tasks: t12.slice(0, 8) } });
+    }
   }
   var pairs = [
     ['wdash.stamps.v1', JSON.stringify(stampSeed2)],
