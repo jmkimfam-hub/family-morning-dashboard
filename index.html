@@ -362,6 +362,107 @@ body{
 .kid-foot.all{color:var(--kid-deep)}
 .kid-foot .foot-note{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--ink-3)}
 
+/* ---------- 도장 배지 (아이 패널 머리) ---------- */
+.stamp-badge{
+  margin-left:auto;flex:0 0 auto;border:0;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;flex-wrap:nowrap;
+  background:var(--kid-soft,#f4f7fd);color:var(--kid-deep,#6a55c9);
+  border-radius:999px;padding:4px 10px 4px 9px;box-shadow:var(--shadow-sm);
+  touch-action:manipulation;
+}
+.stamp-badge:hover{background:#fff}
+.stamp-badge .sb-txt{font-size:11.5px;font-weight:900;margin-right:7px;white-space:nowrap;letter-spacing:-.1px}
+.stamp-badge .sb-txt b{font-size:13.5px;font-variant-numeric:tabular-nums}
+.stamp-badge.full{background:linear-gradient(135deg,#ffe9a8,#ffd0e2);color:#a95f0c;box-shadow:0 3px 10px rgba(230,170,90,.34)}
+.stamp-mini{display:flex;align-items:center}
+.stamp-mini i{
+  display:block;width:9px;height:9px;border-radius:50%;margin-right:2px;
+  background:#fff;border:1.5px dashed #cbd4e6;
+}
+.stamp-mini i.on{background:var(--kid,#a99bf0);border:1.5px solid var(--kid,#a99bf0)}
+.stamp-mini i.gift{border-style:solid;border-color:#e7c46a;background:#fffbee}
+.stamp-mini i.gift.on{background:#ffd166;border-color:#dea427}
+
+/* ---------- 기록 · 도장판 모달 ---------- */
+.hist-card{width:min(690px,100%);max-width:690px}
+.hist-view-tabs .set-tab{font-size:12.5px;padding:7px 8px}
+.hist-stats{display:flex;margin:2px 0 12px}
+.hs{
+  flex:1 1 0%;min-width:0;background:#fafbff;border:1.5px solid #eef1f8;border-radius:14px;
+  padding:7px 6px;text-align:center;
+}
+.hs + .hs{margin-left:6px}
+.hs span{display:block;font-size:10.5px;font-weight:800;color:var(--ink-3);white-space:nowrap}
+.hs b{display:block;font-size:17px;font-weight:900;color:var(--kid-deep,#6a55c9);margin-top:1px;font-variant-numeric:tabular-nums}
+.cal-head{display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.cal-head b{font-size:14px;font-weight:900;margin:0 10px;min-width:124px;text-align:center;font-variant-numeric:tabular-nums}
+.cal-nav{
+  border:0;background:#f2f5fc;color:var(--ink-2);border-radius:10px;width:30px;height:27px;
+  font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;
+}
+.cal-nav:hover{background:#e8eefb;color:var(--ink)}
+.cal-nav[disabled]{opacity:.4;cursor:default}
+.cal-dow{display:flex;margin-bottom:3px}
+.cal-dow span{flex:1 1 0%;text-align:center;font-size:10.5px;font-weight:900;color:var(--ink-3)}
+.cal-dow span:first-child{color:#e8709a}
+.cal-dow span:last-child{color:#2b87bd}
+.cal-grid{display:flex;flex-wrap:wrap;margin:0 -1px}
+.cal-cell{width:14.285%;padding:1px;box-sizing:border-box}
+.cal-cell .cc{
+  border-radius:11px;background:#fafbff;border:1.5px solid #f1f4fb;
+  height:42px;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-sizing:border-box;
+}
+.cal-cell.blank .cc{background:transparent;border-color:transparent}
+.cal-cell .cc .n{font-size:11.5px;font-weight:900;color:var(--ink-2);line-height:1}
+.cal-cell.part .cc{background:var(--kid-soft,#efeafd);border-color:var(--kid,#a99bf0)}
+.cal-cell.part .cc .m{font-size:9px;font-weight:900;color:var(--kid-deep,#6a55c9);margin-top:2px;line-height:1;font-variant-numeric:tabular-nums}
+.cal-cell.done .cc{background:var(--kid,#a99bf0);border-color:var(--kid,#a99bf0)}
+.cal-cell.done .cc .n{color:#fff}
+.cal-cell.done .cc .m{font-size:12px;font-weight:900;color:#fff;margin-top:1px;line-height:1}
+.cal-cell.today .cc{box-shadow:0 0 0 2px #ffcf6b inset}
+.cal-cell.future .cc .n{color:#ccd5e6}
+.hist-note{margin:9px 0 0;font-size:11px;font-weight:700;color:var(--ink-3);text-align:center;line-height:1.45}
+.hist-note b{color:var(--ink-2)}
+
+/* 쿠폰 도장판 */
+.coupon{
+  background:radial-gradient(120% 100% at 0% 0%, #fff7fb 0%, rgba(255,255,255,0) 58%), #fffdf7;
+  border:2px dashed #e7d9c2;border-radius:20px;padding:12px 14px 10px;margin-top:2px;
+}
+.coupon-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.coupon-title{font-size:14.5px;font-weight:900;color:#8a6a2f}
+.coupon-sub{font-size:11px;font-weight:800;color:#b79a63}
+.coupon-grid{display:flex;flex-wrap:wrap;justify-content:center;margin:0 -2px}
+.slot{
+  width:52px;height:52px;margin:3px;border-radius:50%;
+  border:2px dashed #ded3be;background:#fffdf8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#c3b89f;font-size:11px;font-weight:900;box-sizing:border-box;
+}
+.slot .num{font-size:13px;font-weight:900;color:#d6cdb8;line-height:1}
+.slot .gift{font-size:19px;line-height:1;opacity:.45}
+.slot.on{
+  border:2px solid var(--kid,#a99bf0);background:var(--kid-soft,#efeafd);color:var(--kid-deep,#6a55c9);
+  transform:rotate(-5deg);box-shadow:0 2px 6px rgba(125,142,180,.18);
+}
+.slot.on .date{font-size:10.5px;font-weight:900;letter-spacing:-.3px;line-height:1.1;font-variant-numeric:tabular-nums}
+.slot.on .stampico{font-size:8.5px;line-height:1;margin-bottom:1px;opacity:.9}
+.slot.gift{border-color:#e9c46a;background:#fffbee}
+.slot.gift.on{border:2px solid #e0a92a;background:linear-gradient(150deg,#fff3c9,#ffe1ec);color:#a86a12;transform:rotate(4deg)}
+.slot.gift .gift{opacity:1}
+.slot.gift.on .gift{font-size:17px}
+.slot.gift.on .date{color:#8a5a10}
+.coupon-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:11.5px;font-weight:900;color:#a08a5c}
+.coupon-foot b{color:#8a6a2f;font-variant-numeric:tabular-nums}
+.board-done{
+  margin-top:10px;border-radius:16px;background:linear-gradient(135deg,#fff3c9,#ffe3ee);
+  color:#a8630f;font-size:13.5px;font-weight:900;text-align:center;padding:10px 8px;
+}
+.board-actions{display:flex;justify-content:center;margin-top:8px}
+.board-hint{margin:8px 0 0;font-size:11px;font-weight:700;color:#b79a63;text-align:center;line-height:1.4}
+.pending-note{margin-top:7px;font-size:11px;font-weight:800;color:#b07b2a;text-align:center}
+
 /* ---------- 설정 모달 ---------- */
 .modal-bg{
   position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:80;background:rgba(58,68,99,.46);
@@ -393,6 +494,18 @@ body{
 }
 .set-row input:focus{border-color:var(--sky);background:#fff}
 .set-row input[type=time]{max-width:150px}
+.set-row input.task-in{flex:1 1 auto;min-width:0}
+.task-del{
+  flex:0 0 auto;margin-left:7px;border:0;border-radius:10px;background:#fff0f2;color:#cf5568;
+  font-family:inherit;font-size:13px;font-weight:900;width:34px;height:34px;cursor:pointer;
+}
+.task-del:hover{background:#ffe1e6}
+.task-add-wrap{display:flex;align-items:center;margin:2px 0 4px 74px;flex-wrap:wrap}
+.task-add-wrap .mini-btn{font-size:12px;padding:7px 12px}
+.task-note{margin-left:9px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+.set-sheet{margin-top:14px;padding-top:12px;border-top:1.5px dashed #eef1f8}
+.set-note{margin:0 0 2px;font-size:10.5px;font-weight:700;color:var(--ink-3);line-height:1.45}
+.set-row.sheet-row label{width:56px}
 .modal-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
 .modal-actions .btn + .btn{margin-left:8px}
 .btn{
@@ -513,6 +626,7 @@ body{
       <span class="clock-tag" id="clockTag">오전</span>
     </div>
     <div class="tb-actions">
+      <button class="pill hist" id="histBtn" type="button" title="기록 · 도장판 (H)"><span>📊</span> 기록</button>
       <button class="pill sound" id="soundBtn" type="button" title="축하 소리 끄기 (M)" aria-pressed="true">🔊</button>
       <button class="pill" id="fsBtn" type="button" title="전체화면 (F)"><span>⛶</span> 전체화면</button>
       <button class="pill" id="setBtn" type="button" title="설정 (S)"><span>⚙️</span> 설정</button>
@@ -608,10 +722,31 @@ body{
       <input type="time" id="setTime" step="60">
     </div>
     <div id="setTasks"></div>
+    <div class="set-sheet">
+      <div class="set-row sheet-row">
+        <label for="setSheetUrl">구글 시트</label>
+        <input type="text" id="setSheetUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <p class="set-note">웹 앱 주소를 넣으면 하루 기록과 도장이 구글 시트에도 쌓여요. 비워 두면 패드에만 저장됩니다.</p>
+    </div>
     <div class="modal-actions">
       <button class="btn danger" id="resetBtn" type="button">기본값으로</button>
       <button class="btn ghost" id="cancelBtn" type="button">닫기</button>
       <button class="btn primary" id="saveBtn" type="button">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 기록 · 도장판 모달 -->
+<div class="modal-bg" id="histModal" hidden>
+  <div class="modal-card hist-card" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+    <h2 id="histTitle">📊 기록 · 도장판</h2>
+    <p class="hint" id="histHint">아이별 달성 기록과 쿠폰 도장을 볼 수 있어요.</p>
+    <div class="set-tabs" id="histKidTabs"></div>
+    <div class="set-tabs hist-view-tabs" id="histViewTabs"></div>
+    <div id="histBody"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="histCloseBtn" type="button">닫기</button>
     </div>
   </div>
 </div>
@@ -862,8 +997,16 @@ const KEY = {
   settingsOld:'wdash.settings.v1',
   weather:'wdash.weather.v1',
   phrase:'wdash.phrase.v1',
-  sound:'wdash.sound.v1'
+  sound:'wdash.sound.v1',
+  history:'wdash.history.v1',
+  stamps:'wdash.stamps.v1',
+  sheetUrl:'wdash.sheetUrl.v1'
 };
+/* 할 일 항목 수 제한 — 기본 6개는 그대로, 설정에서 1~12개까지 늘리고 줄일 수 있다. */
+const TASK_MIN = 1;
+const TASK_MAX = 12;
+const STAMP_SLOTS = 10;
+const HISTORY_DAYS = 180;
 
 /* ============================================================
    3. 상태
@@ -872,6 +1015,9 @@ const state = {
   kids: [],
   active: null,
   checks: {},
+  history: {},
+  stamps: {},
+  sheetUrl: '',
   dateKey: dayKey(),
   phraseOffset: 0
 };
@@ -919,10 +1065,9 @@ function loadSettings(){
   return DEFAULT_KIDS.map(function(base){
     const s = (obj && obj[base.id]) || {};
     let tasks = base.tasks.slice();
-    if (Array.isArray(s.tasks) && s.tasks.length === base.tasks.length){
-      tasks = s.tasks.map(function(t, i){
-        return (typeof t === 'string' && t.trim()) ? t.trim() : base.tasks[i];
-      });
+    if (Array.isArray(s.tasks) && s.tasks.length >= TASK_MIN && s.tasks.length <= TASK_MAX
+        && s.tasks.every(function(t){ return typeof t === 'string' && t.trim(); })){
+      tasks = s.tasks.map(function(t){ return t.trim().slice(0, 40); });
     }
     const time = (typeof s.time === 'string' && /^\d{2}:\d{2}$/.test(s.time)) ? s.time : base.time;
     return { id: base.id, name: base.name, grade: base.grade, emoji: base.emoji, theme: base.theme, time: time, tasks: tasks };
@@ -935,17 +1080,35 @@ function freshChecks(){
   return data;
 }
 
+/* 항목 수가 바뀌어도 오늘 체크한 것은 앞에서부터 최대한 살린다. */
+function resizeChecks(arr, len){
+  const out = [];
+  for (let i = 0; i < len; i++) out.push(arr && arr[i] === true);
+  return out;
+}
+
+function kidById(id){
+  let found = null;
+  state.kids.forEach(function(k){ if (k.id === id) found = k; });
+  return found;
+}
+
+function ensureChecks(k){
+  if (!k) return [];
+  const cur = state.checks[k.id];
+  if (!Array.isArray(cur) || cur.length !== k.tasks.length){
+    state.checks[k.id] = resizeChecks(cur, k.tasks.length);
+  }
+  return state.checks[k.id];
+}
+
 function loadChecks(){
   let obj = null;
   try { obj = JSON.parse(store.get(KEY.checks) || 'null'); } catch(e){ obj = null; }
   if (obj && obj.date === dayKey() && obj.data){
     const data = obj.data;
     state.kids.forEach(function(k){
-      if (!Array.isArray(data[k.id]) || data[k.id].length !== k.tasks.length){
-        data[k.id] = k.tasks.map(function(){ return false; });
-      } else {
-        data[k.id] = data[k.id].map(function(v){ return v === true; });
-      }
+      data[k.id] = resizeChecks(Array.isArray(data[k.id]) ? data[k.id].map(function(v){ return v === true; }) : [], k.tasks.length);
     });
     return data;
   }
@@ -954,6 +1117,196 @@ function loadChecks(){
 
 function saveChecks(){
   try { store.set(KEY.checks, JSON.stringify({ date: dayKey(), data: state.checks })); } catch(e){}
+}
+
+/* ============================================================
+   날짜별 기록 · 쿠폰 도장 · 구글 시트 전송
+   ============================================================ */
+/* 기록: wdash.history.v1 = { 'YYYY-MM-DD': { seoyun:{done,total,allDone,tasks:[]}, ... } } */
+function loadHistory(){
+  let obj = null;
+  try { obj = JSON.parse(store.get(KEY.history) || 'null'); } catch(e){ obj = null; }
+  state.history = (obj && typeof obj === 'object') ? obj : {};
+  pruneHistory();
+}
+
+function saveHistory(){
+  try { store.set(KEY.history, JSON.stringify(state.history)); } catch(e){}
+}
+
+function pruneHistory(){
+  const keys = Object.keys(state.history).sort();
+  const extra = keys.length - HISTORY_DAYS;
+  for (let i = 0; i < extra; i++) delete state.history[keys[i]];
+}
+
+function recordToday(kidId){
+  const k = kidById(kidId);
+  if (!k) return;
+  const arr = ensureChecks(k);
+  const total = k.tasks.length;
+  const done = arr.filter(Boolean).length;
+  const d = dayKey();
+  if (!state.history[d]) state.history[d] = {};
+  state.history[d][kidId] = {
+    done: done, total: total, allDone: total > 0 && done === total,
+    tasks: arr.slice(0, total)
+  };
+  pruneHistory();
+  saveHistory();
+}
+
+function histOf(kidId, dateKeyStr){
+  const row = state.history[dateKeyStr];
+  if (!row) return null;
+  const r = row[kidId];
+  if (!r || typeof r.done !== 'number' || typeof r.total !== 'number') return null;
+  return r;
+}
+
+function isAllDoneOn(kidId, dateKeyStr){
+  const r = histOf(kidId, dateKeyStr);
+  return !!(r && r.total > 0 && r.allDone === true);
+}
+
+/* 도장: wdash.stamps.v1 = { seoyun:{ slots:[{date:'2026-11-22'}], completedBoards:0, pending:[] } } */
+function loadStamps(){
+  let obj = null;
+  try { obj = JSON.parse(store.get(KEY.stamps) || 'null'); } catch(e){ obj = null; }
+  state.stamps = {};
+  DEFAULT_KIDS.forEach(function(base){
+    const s = (obj && obj[base.id]) ? obj[base.id] : null;
+    state.stamps[base.id] = {
+      slots: (s && Array.isArray(s.slots)) ? s.slots.filter(function(x){ return x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date)); }).slice(0, STAMP_SLOTS) : [],
+      completedBoards: (s && typeof s.completedBoards === 'number' && s.completedBoards >= 0) ? Math.floor(s.completedBoards) : 0,
+      pending: (s && Array.isArray(s.pending)) ? s.pending.filter(function(x){ return /^\d{4}-\d{2}-\d{2}$/.test(String(x)); }).slice(0, 30) : [],
+      used: (s && Array.isArray(s.used)) ? s.used.filter(function(x){ return /^\d{4}-\d{2}-\d{2}$/.test(String(x)); }).slice(-60) : null
+    };
+    if (!state.stamps[base.id].used){
+      const st0 = state.stamps[base.id];
+      const u = [];
+      st0.slots.forEach(function(x){ u.push(x.date); });
+      st0.pending.forEach(function(x){ if (u.indexOf(x) < 0) u.push(x); });
+      st0.used = u;
+    }
+  });
+  state.kids.forEach(function(k){ if (!state.stamps[k.id]) state.stamps[k.id] = { slots: [], completedBoards: 0, pending: [], used: [] }; });
+}
+
+function saveStamps(){
+  try { store.set(KEY.stamps, JSON.stringify(state.stamps)); } catch(e){}
+}
+
+function stampOf(kidId){
+  if (!state.stamps[kidId]) state.stamps[kidId] = { slots: [], completedBoards: 0, pending: [], used: [] };
+  const st = state.stamps[kidId];
+  if (!Array.isArray(st.used)) st.used = [];
+  return st;
+}
+
+function stampIndexForToday(kidId){
+  const st = stampOf(kidId);
+  const d = dayKey();
+  for (let i = 0; i < st.slots.length; i++){
+    if (st.slots[i].date === d) return i;
+  }
+  return -1;
+}
+
+/* 그날 할 일을 모두 채우면 도장 한 칸 발급. true=발급, 'full'=10칸 완성, 'queued'=판이 가득 차 대기, false=이미 있음/변경없음 */
+function grantStamp(kidId){
+  const st = stampOf(kidId);
+  const d = dayKey();
+  if (st.used.indexOf(d) >= 0) return false;   /* 같은 날짜 도장은 한 번만 */
+  if (stampIndexForToday(kidId) >= 0) return false;
+  st.used.push(d);
+  if (st.used.length > 60) st.used = st.used.slice(-60);
+  if (st.slots.length >= STAMP_SLOTS){
+    if (st.pending.indexOf(d) < 0){ st.pending.push(d); saveStamps(); return 'queued'; }
+    return false;
+  }
+  st.slots.push({ date: d });
+  const pi = st.pending.indexOf(d);
+  if (pi >= 0) st.pending.splice(pi, 1);
+  saveStamps();
+  return st.slots.length >= STAMP_SLOTS ? 'full' : true;
+}
+
+/* 체크를 하나라도 풀면 그날 도장도 함께 회수한다. (이미 선물한 지난 판의 도장은 그대로) */
+function revokeTodayStamp(kidId){
+  const st = stampOf(kidId);
+  const d = dayKey();
+  let changed = false;
+  const kept = [];
+  for (let i = 0; i < st.slots.length; i++){
+    if (st.slots[i].date === d) changed = true;
+    else kept.push(st.slots[i]);
+  }
+  st.slots = kept;
+  const pi = st.pending.indexOf(d);
+  if (pi >= 0){ st.pending.splice(pi, 1); changed = true; }
+  if (changed){
+    const ui = st.used.indexOf(d);
+    if (ui >= 0) st.used.splice(ui, 1);
+    saveStamps();
+  }
+  return changed;
+}
+
+/* 부모가 선물을 주고 새 도장판을 시작한다. */
+function startNewBoard(kidId){
+  const st = stampOf(kidId);
+  if (st.slots.length < STAMP_SLOTS) return false;
+  st.completedBoards += 1;
+  st.slots = [];
+  st.pending.sort();
+  while (st.slots.length < STAMP_SLOTS && st.pending.length){
+    st.slots.push({ date: st.pending.shift() });
+  }
+  saveStamps();
+  return true;
+}
+
+/* 오늘 상태와 도장판을 맞춘다. (설정 변경·날짜 변경·처음 열 때) */
+function syncStampForToday(kidId){
+  const k = kidById(kidId);
+  if (!k) return;
+  const arr = ensureChecks(k);
+  const all = k.tasks.length > 0 && arr.filter(Boolean).length === k.tasks.length;
+  if (all){
+    if (stampIndexForToday(kidId) < 0) grantStamp(kidId);
+  } else {
+    revokeTodayStamp(kidId);
+  }
+}
+
+/* 구글 시트 웹 앱으로 오늘 기록을 보낸다. 주소가 없으면 아무 요청도 하지 않는다. */
+function postSheet(kidId){
+  const url = String(state.sheetUrl || '').trim();
+  if (!url || !/^https?:\/\//i.test(url) || typeof fetch !== 'function') return;
+  const k = kidById(kidId);
+  if (!k) return;
+  const d = dayKey();
+  const r = histOf(kidId, d);
+  const st = stampOf(kidId);
+  const payload = {
+    date: d,
+    kidId: k.id,
+    kidName: k.name,
+    done: r ? r.done : 0,
+    total: r ? r.total : k.tasks.length,
+    allDone: !!(r && r.allDone),
+    stampsCount: st.slots.length,
+    completedBoards: st.completedBoards,
+    updatedAt: new Date().toISOString()
+  };
+  try {
+    fetch(url, {
+      method: 'POST', mode: 'no-cors', cache: 'no-store',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).catch(function(){});
+  } catch(e){ /* 전송이 안 돼도 패드 기록은 그대로 */ }
 }
 
 function loadPhraseOffset(){
@@ -1115,13 +1468,33 @@ function renderChecklist(){
   if (cc) cc.textContent = doneCount(k) + '/' + k.tasks.length;
 }
 
+function stampBadgeHTML(k){
+  const st = stampOf(k.id);
+  const n = st.slots.length;
+  const full = n >= STAMP_SLOTS;
+  let dots = '';
+  for (let i = 0; i < STAMP_SLOTS; i++){
+    const on = i < n;
+    const gift = i === STAMP_SLOTS - 1;
+    dots += '<i class="' + (on ? 'on' : '') + (gift ? ' gift' : '') + '"></i>';
+  }
+  return '<button type="button" class="stamp-badge' + (full ? ' full' : '') + '" id="stampBadge" title="도장판 크게 보기">'
+    + '<span class="sb-txt">' + (full ? '🎁 선물 시간!' : '🎟️ 도장 <b>' + n + '</b>/10') + '</span>'
+    + '<span class="stamp-mini">' + dots + '</span></button>';
+}
+
+function renderStampBadge(){
+  const k = currentKid();
+  if (!k) return;
+  const old = $('stampBadge');
+  if (old && old.parentNode) old.outerHTML = stampBadgeHTML(k);
+}
+
 function renderKid(){
   const k = currentKid();
   const panel = $('kidPanel');
   if (!k || !panel) return;
-  if (!Array.isArray(state.checks[k.id]) || state.checks[k.id].length !== k.tasks.length){
-    state.checks[k.id] = k.tasks.map(function(){ return false; });
-  }
+  ensureChecks(k);
   const done = doneCount(k);
   panel.className = 'kid-panel card theme-' + k.theme;
   panel.innerHTML =
@@ -1135,7 +1508,7 @@ function renderKid(){
     +   '<div class="count-line"><div class="countdown" id="countdown"><span id="cdPlain">–</span><span id="cdNums" style="display:none"><span id="cdH">0</span><span class="u" id="cdHU">시간</span><span id="cdM">00</span><span class="u">분</span><span id="cdS">00</span><span class="u">초</span></span></div><div class="cd-note" id="cdNote"></div></div>'
     +   '<div class="progress"><div class="bar" id="bar"></div></div>'
     + '</div>'
-    + '<div class="check-head"><h3>아침 준비 체크</h3><span class="check-count" id="checkCount">' + done + '/' + k.tasks.length + '</span></div>'
+    + '<div class="check-head"><h3>아침 준비 체크</h3><span class="check-count" id="checkCount">' + done + '/' + k.tasks.length + '</span>' + stampBadgeHTML(k) + '</div>'
     + '<div class="checklist" id="checklist"></div>'
     + '<div class="kid-foot' + (done === k.tasks.length ? ' all' : '') + '" id="kidFoot">'
     +   '<span class="spark">🌈</span><span id="footText"></span></div>';
@@ -1325,26 +1698,57 @@ function updateFoot(now){
 
 /* ---------- 체크 ---------- */
 function toggleTask(kidId, idx){
-  const k = (function(){ let f = null; state.kids.forEach(function(x){ if (x.id === kidId) f = x; }); return f; })();
+  const k = kidById(kidId);
   if (!k) return;
-  if (!Array.isArray(state.checks[kidId]) || state.checks[kidId].length !== k.tasks.length){
-    state.checks[kidId] = k.tasks.map(function(){ return false; });
-  }
-  const arr = state.checks[kidId];
+  const arr = ensureChecks(k);
+  if (idx < 0 || idx >= arr.length) return;
+  const wasAll = arr.length > 0 && arr.every(Boolean);
   arr[idx] = !arr[idx];
   saveChecks();
+  recordToday(kidId);
+
+  const total = k.tasks.length;
+  const done = arr.filter(Boolean).length;
+  const all = total > 0 && done === total;
+  let stampResult = false;
+  if (all){
+    if (!wasAll) stampResult = grantStamp(kidId);
+  } else {
+    if (revokeTodayStamp(kidId)) stampResult = 'revoke';
+  }
+
   renderChecklist();
   updateBadges();
+  renderStampBadge();
   lastFoot = '';
   updateFoot(kstNow());
-  if (arr.every(Boolean)){
+
+  if (all){
     const key = kidId + '|' + dayKey();
+    let did = false;
     if (!celebrated[key]){
       celebrated[key] = true;
       celebrate(kidId);
+      did = true;
+    }
+    if (stampResult === 'full'){
+      if (!did) celebrate(kidId);
+      toast('🎉 도장 10개 완성! 선물 받을 시간!');
+    } else if (stampResult === 'queued'){
+      toast('도장판이 가득 찼어요! 선물 받고 새 판을 시작해요 🎁');
+    } else if (stampResult === true){
+      toast(k.name + ' 준비 끝! 🎟️ 도장 ' + stampOf(kidId).slots.length + '/10');
+    } else if (!did){
+      /* 이미 오늘 다 채운 상태(새로고침 뒤 등) */
+    } else {
       toast(k.name + ' 준비 끝! 오늘도 화이팅 🎉');
     }
+  } else if (stampResult === 'revoke'){
+    toast('오늘 도장도 함께 회수했어요 🎟️');
   }
+
+  postSheet(kidId);
+  if (!$('histModal').hidden) renderHistBody();
 }
 
 /* ---------- 축하 소리 (Web Audio, 외부 파일 없음) ----------
@@ -1677,11 +2081,17 @@ let draftKid = null;
 function openSettings(){
   draft = {};
   state.kids.forEach(function(k){
-    draft[k.id] = { time: k.time, tasks: k.tasks.slice() };
+    draft[k.id] = {
+      time: k.time,
+      tasks: k.tasks.slice(),
+      orig: k.tasks.map(function(_, i){ return i; })
+    };
   });
   draftKid = state.active;
   renderSetTabs();
   renderSetForm();
+  const su = $('setSheetUrl');
+  if (su) su.value = state.sheetUrl || '';
   $('modal').hidden = false;
 }
 
@@ -1704,10 +2114,37 @@ function renderSetForm(){
   if (!draft || !draftKid) return;
   const d = draft[draftKid];
   $('setTime').value = d.time;
-  $('setTasks').innerHTML = d.tasks.map(function(t, i){
-    return '<div class="set-row"><label for="setTask' + i + '">항목 ' + (i + 1) + '</label>'
-      + '<input type="text" id="setTask' + i + '" data-i="' + i + '" maxlength="40" value="' + esc(t) + '"></div>';
+  let html = d.tasks.map(function(t, i){
+    return '<div class="set-row"><label for="setTask' + i + '">할 일 ' + (i + 1) + '</label>'
+      + '<input type="text" class="task-in" id="setTask' + i + '" data-i="' + i + '" maxlength="40" value="' + esc(t) + '">'
+      + '<button type="button" class="task-del" data-del="' + i + '" title="이 항목 삭제">✕</button></div>';
   }).join('');
+  html += '<div class="task-add-wrap"><button type="button" class="mini-btn" id="addTaskBtn">+ 할 일 추가</button>'
+    + '<span class="task-note">' + d.tasks.length + '/' + TASK_MAX + '개 · 아침·저녁 할 일을 같이 넣어도 돼요</span></div>';
+  $('setTasks').innerHTML = html;
+}
+
+function addDraftTask(){
+  if (!draft || !draftKid) return;
+  syncDraft();
+  const d = draft[draftKid];
+  if (d.tasks.length >= TASK_MAX){ toast('할 일은 ' + TASK_MAX + '개까지 넣을 수 있어요'); return; }
+  d.tasks.push('');
+  d.orig.push(-1);
+  renderSetForm();
+  const el = $('setTask' + (d.tasks.length - 1));
+  if (el && el.focus) el.focus();
+}
+
+function deleteDraftTask(i){
+  if (!draft || !draftKid) return;
+  syncDraft();
+  const d = draft[draftKid];
+  if (d.tasks.length <= TASK_MIN){ toast('할 일은 최소 ' + TASK_MIN + '개는 있어야 해요'); return; }
+  if (i < 0 || i >= d.tasks.length) return;
+  d.tasks.splice(i, 1);
+  d.orig.splice(i, 1);
+  renderSetForm();
 }
 
 function syncDraft(){
@@ -1716,30 +2153,63 @@ function syncDraft(){
   const tEl = $('setTime');
   if (tEl && /^\d{2}:\d{2}$/.test(tEl.value)) d.time = tEl.value;
   const inputs = document.querySelectorAll('#setTasks input[type="text"]');
+  const next = d.tasks.slice();
   for (let i = 0; i < inputs.length; i++){
     const idx = Number(inputs[i].getAttribute('data-i'));
-    const v = inputs[i].value.trim();
-    if (v) d.tasks[idx] = v;
+    if (!isNaN(idx) && idx >= 0 && idx < next.length) next[idx] = inputs[i].value;
   }
+  d.tasks = next;
 }
 
 function saveSettings(){
   syncDraft();
+
+  /* 구글 시트 주소 먼저 검히 */
+  let sheetUrl = state.sheetUrl || '';
+  const su = $('setSheetUrl');
+  if (su){
+    const url = su.value.trim();
+    if (url && !/^https?:\/\/\S+$/i.test(url)){
+      toast('구글 시트 주소는 https:// 로 시작하는 전체 주소를 넣어 주세요');
+      return;
+    }
+    sheetUrl = url;
+  }
+
   const obj = {};
-  state.kids.forEach(function(k){ obj[k.id] = draft[k.id]; });
+  const newChecks = {};
+  state.kids.forEach(function(k){
+    const d = draft[k.id];
+    const tasks = d.tasks
+      .map(function(t){ return String(t == null ? '' : t).trim().slice(0, 40); })
+      .filter(function(t){ return t.length > 0; })
+      .slice(0, TASK_MAX);
+    obj[k.id] = { time: d.time, tasks: tasks.length ? tasks : k.tasks.slice() };
+    const oldChecks = state.checks[k.id] || [];
+    newChecks[k.id] = obj[k.id].tasks.map(function(_, i){
+      const oi = d.orig[i];
+      return (typeof oi === 'number' && oi >= 0 && oldChecks[oi] === true);
+    });
+  });
+
   store.set(KEY.settings, JSON.stringify(obj));
+  state.sheetUrl = sheetUrl;
+  store.set(KEY.sheetUrl, sheetUrl);
   state.kids = loadSettings();
   state.kids.forEach(function(k){
-    if (!Array.isArray(state.checks[k.id]) || state.checks[k.id].length !== k.tasks.length){
-      state.checks[k.id] = k.tasks.map(function(){ return false; });
-    }
+    state.checks[k.id] = (newChecks[k.id] && newChecks[k.id].length === k.tasks.length)
+      ? newChecks[k.id] : resizeChecks(state.checks[k.id], k.tasks.length);
+    recordToday(k.id);
+    syncStampForToday(k.id);
   });
   saveChecks();
   renderTabs();
   renderKid();
   updateBadges();
   closeSettings();
+  if (!$('histModal').hidden){ renderHistKidTabs(); renderHistViewTabs(); renderHistBody(); }
   toast('설정을 저장했어요 ✨');
+  state.kids.forEach(function(k){ postSheet(k.id); });
 }
 
 function resetDraftKid(){
@@ -1747,9 +2217,191 @@ function resetDraftKid(){
   let base = null;
   DEFAULT_KIDS.forEach(function(k){ if (k.id === draftKid) base = k; });
   if (!base) return;
-  draft[draftKid] = { time: base.time, tasks: base.tasks.slice() };
+  draft[draftKid] = {
+    time: base.time,
+    tasks: base.tasks.slice(),
+    orig: base.tasks.map(function(_, i){ return i; })
+  };
   renderSetForm();
   toast('이 아이의 설정을 기본값으로 되돌렸어요');
+}
+
+/* ============================================================
+   6-2. 기록 · 도장판 모달
+   ============================================================ */
+const hist = { kid: null, view: 'history', monthOffset: 0 };
+const WEEK_DOW = ['일', '월', '화', '수', '목', '금', '토'];
+
+function keyFromMs(ms){
+  const d = new Date(ms);
+  return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+}
+function todayUtcMs(){
+  const n = kstNow();
+  return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
+}
+function weekDoneCount(kidId){
+  const dow = kstNow().getUTCDay();
+  const base = todayUtcMs();
+  let n = 0;
+  for (let i = 0; i <= dow; i++){
+    if (isAllDoneOn(kidId, keyFromMs(base - i * 86400000))) n++;
+  }
+  return n;
+}
+function monthDoneCount(kidId){
+  const n = kstNow();
+  const base = Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), 1);
+  let count = 0;
+  for (let d = 0; d <= n.getUTCDate() - 1; d++){
+    if (isAllDoneOn(kidId, keyFromMs(base + d * 86400000))) count++;
+  }
+  return count;
+}
+/* 오늘 아직 안 채웠으면 어제까지의 연속일을 보여 준다. */
+function streakFor(kidId){
+  let n = 0;
+  let ms = todayUtcMs();
+  if (!isAllDoneOn(kidId, keyFromMs(ms))) ms -= 86400000;
+  for (let i = 0; i < 400; i++){
+    if (isAllDoneOn(kidId, keyFromMs(ms))){ n++; ms -= 86400000; }
+    else break;
+  }
+  return n;
+}
+function monthFromOffset(off){
+  const n = kstNow();
+  let y = n.getUTCFullYear();
+  let m = n.getUTCMonth() + off;
+  y += Math.floor(m / 12);
+  m = ((m % 12) + 12) % 12;
+  return { y: y, m: m };
+}
+function kidVarStyle(k){
+  return 'style="--kid:var(--' + k.theme + ');--kid-soft:var(--' + k.theme + '-soft);--kid-deep:var(--' + k.theme + '-deep)"';
+}
+function openHistory(kidId, view){
+  hist.kid = kidById(kidId) ? kidId : state.active;
+  hist.view = (view === 'stamp') ? 'stamp' : 'history';
+  hist.monthOffset = 0;
+  renderHistKidTabs();
+  renderHistViewTabs();
+  renderHistBody();
+  $('histModal').hidden = false;
+}
+function closeHistory(){ $('histModal').hidden = true; }
+
+function renderHistKidTabs(){
+  const host = $('histKidTabs');
+  if (!host) return;
+  host.innerHTML = state.kids.map(function(k){
+    return '<button type="button" class="set-tab theme-' + k.theme + (k.id === hist.kid ? ' active' : '') + '"'
+      + ' data-hkid="' + k.id + '" ' + kidVarStyle(k) + '>'
+      + '<span class="set-av">' + avatarSVG(k) + '</span>' + esc(k.name) + ' <em style="font-style:normal;opacity:.65">' + esc(k.grade) + '</em></button>';
+  }).join('');
+}
+
+function renderHistViewTabs(){
+  const host = $('histViewTabs');
+  if (!host) return;
+  const k = kidById(hist.kid) || currentKid();
+  host.innerHTML = '<button type="button" class="set-tab' + (hist.view === 'history' ? ' active' : '') + '" data-hview="history" ' + kidVarStyle(k) + '>📅 기록</button>'
+    + '<button type="button" class="set-tab' + (hist.view === 'stamp' ? ' active' : '') + '" data-hview="stamp" ' + kidVarStyle(k) + '>🎟️ 도장판</button>';
+}
+
+function renderHistoryView(k){
+  const off = hist.monthOffset;
+  const mm = monthFromOffset(off);
+  const firstDow = new Date(Date.UTC(mm.y, mm.m, 1)).getUTCDay();
+  const days = new Date(Date.UTC(mm.y, mm.m + 1, 0)).getUTCDate();
+  const todayK = dayKey();
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += '<div class="cal-cell blank"><div class="cc"></div></div>';
+  for (let d = 1; d <= days; d++){
+    const key = mm.y + '-' + pad2(mm.m + 1) + '-' + pad2(d);
+    const r = histOf(k.id, key);
+    let cls = '';
+    let mark = '';
+    if (r && r.allDone){ cls = ' done'; mark = '✓'; }
+    else if (r && r.done > 0){ cls = ' part'; mark = r.done + '/' + r.total; }
+    if (key === todayK) cls += ' today';
+    if (key > todayK) cls += ' future';
+    cells += '<div class="cal-cell' + cls + '"><div class="cc"><span class="n">' + d + '</span>'
+      + (mark ? '<span class="m">' + mark + '</span>' : '') + '</div></div>';
+  }
+  const st = stampOf(k.id);
+  return '<div class="hist-theme" ' + kidVarStyle(k) + '>'
+    + '<div class="hist-stats">'
+    +   '<div class="hs"><span>이번 주</span><b>' + weekDoneCount(k.id) + '회</b></div>'
+    +   '<div class="hs"><span>이번 달</span><b>' + monthDoneCount(k.id) + '회</b></div>'
+    +   '<div class="hs"><span>연속 성공</span><b>' + streakFor(k.id) + '일</b></div>'
+    +   '<div class="hs"><span>도장</span><b>' + st.slots.length + '/10</b></div>'
+    + '</div>'
+    + '<div class="cal-head">'
+    +   '<button type="button" class="cal-nav" data-act="prev"' + (off <= -24 ? ' disabled' : '') + ' title="지난달">◀</button>'
+    +   '<b>' + mm.y + '년 ' + (mm.m + 1) + '월</b>'
+    +   '<button type="button" class="cal-nav" data-act="next"' + (off >= 0 ? ' disabled' : '') + ' title="다음달">▶</button>'
+    + '</div>'
+    + '<div class="cal-dow">' + WEEK_DOW.map(function(w){ return '<span>' + w + '</span>'; }).join('') + '</div>'
+    + '<div class="cal-grid">' + cells + '</div>'
+    + '<p class="hist-note"><b>✓</b> 는 그날 할 일을 모두 채운 날 · <b>4/6</b> 처럼 일부만 한 날도 보여요<br>날마다 모든 항목을 채우면 도장이 한 칸씩 붙어요.</p>'
+    + '</div>';
+}
+
+function stampDateLabel(dateStr){
+  return Number(dateStr.slice(5, 7)) + '/' + Number(dateStr.slice(8, 10));
+}
+
+function renderStampView(k){
+  const st = stampOf(k.id);
+  const n = st.slots.length;
+  const full = n >= STAMP_SLOTS;
+  let slots = '';
+  for (let i = 0; i < STAMP_SLOTS; i++){
+    const isGift = (i === STAMP_SLOTS - 1);
+    const s = st.slots[i];
+    if (s){
+      slots += '<div class="slot on' + (isGift ? ' gift' : '') + '">'
+        + (isGift ? '<span class="gift">🎁</span>' : '<span class="stampico">✓</span>')
+        + '<span class="date">' + stampDateLabel(s.date) + '</span></div>';
+    } else {
+      slots += '<div class="slot' + (isGift ? ' gift' : '') + '">'
+        + (isGift ? '<span class="gift">🎁</span>' : '<span class="num">' + (i + 1) + '</span>') + '</div>';
+    }
+  }
+  const arr = ensureChecks(k);
+  const done = arr.filter(Boolean).length;
+  const total = k.tasks.length;
+  const todayMsg = (total > 0 && done === total)
+    ? '오늘은 다 채웠어요! ' + (stampIndexForToday(k.id) >= 0 ? '도장을 받았어요 🎟️' : '이 판이 가득 차면 새 판에 붙어요')
+    : '오늘 ' + done + '/' + total + ' · 다 채우면 도장 한 칸!';
+  return '<div class="hist-theme" ' + kidVarStyle(k) + '>'
+    + '<div class="coupon">'
+    +   '<div class="coupon-head"><span class="coupon-title">🎟️ ' + esc(k.name) + ' 도장 쿠폰</span><span class="coupon-sub">10개를 모으면 선물!</span></div>'
+    +   '<div class="coupon-grid">' + slots + '</div>'
+    +   '<div class="coupon-foot"><span>완성한 판: <b>' + st.completedBoards + '판</b></span><span>모은 도장: <b>' + n + '/10</b></span></div>'
+    + '</div>'
+    + (full
+        ? '<div class="board-done">🎉 도장 10개 완성! 선물 받을 시간!</div>'
+          + '<div class="board-actions"><button type="button" class="btn primary" data-act="newboard">🎁 선물 주고 새 도장판 시작</button></div>'
+        : '')
+    + (st.pending.length ? '<p class="pending-note">기다리는 도장 ' + st.pending.length + '개 · 새 판을 시작하면 차례대로 붙어요</p>' : '')
+    + '<p class="board-hint">' + todayMsg + '<br>체크를 하나라도 풀면 그날 도장도 함께 회수돼요.</p>'
+    + '</div>';
+}
+
+function renderHistBody(){
+  const host = $('histBody');
+  if (!host) return;
+  const k = kidById(hist.kid) || currentKid();
+  if (!k) return;
+  host.innerHTML = (hist.view === 'stamp') ? renderStampView(k) : renderHistoryView(k);
+  const hint = $('histHint');
+  if (hint){
+    hint.textContent = (hist.view === 'stamp')
+      ? k.name + '가 모은 쿠폰 도장이에요. 10칸을 다 채우면 선물을 주고 새 판을 시작해요.'
+      : k.name + '의 날짜별 달성 기록이에요. 탭을 눌러 아이를 바꿀 수 있어요.';
+  }
 }
 
 /* ============================================================
@@ -1793,10 +2445,12 @@ function resetForNewDay(){
   state.phraseOffset = 0;
   savePhraseOffset();
   Object.keys(celebrated).forEach(function(k){ delete celebrated[k]; });
+  state.kids.forEach(function(k){ syncStampForToday(k.id); });
   renderPhrase();
   renderIdiom();
   renderTabs();
   renderKid();
+  if (!$('histModal').hidden){ renderHistViewTabs(); renderHistBody(); }
 }
 
 function tick(){
@@ -1823,6 +2477,8 @@ function bindEvents(){
   const panel = $('kidPanel');
   if (panel){
     panel.addEventListener('click', function(e){
+      const stampBtn = e.target.closest ? e.target.closest('.stamp-badge') : null;
+      if (stampBtn){ openHistory(state.active, 'stamp'); return; }
       const btn = e.target.closest ? e.target.closest('.check-item') : null;
       if (!btn) return;
       const idx = Number(btn.getAttribute('data-i'));
@@ -1851,6 +2507,9 @@ function bindEvents(){
   const sndBtn = $('soundBtn');
   if (sndBtn) sndBtn.addEventListener('click', toggleSound);
 
+  const histBtn = $('histBtn');
+  if (histBtn) histBtn.addEventListener('click', function(){ openHistory(state.active, 'history'); });
+
   const modal = $('modal');
   if (modal){
     modal.addEventListener('click', function(e){
@@ -1863,6 +2522,67 @@ function bindEvents(){
   if (saveBtn) saveBtn.addEventListener('click', saveSettings);
   const resetBtn = $('resetBtn');
   if (resetBtn) resetBtn.addEventListener('click', resetDraftKid);
+
+  const setTasks = $('setTasks');
+  if (setTasks){
+    setTasks.addEventListener('click', function(e){
+      const add = e.target.closest ? e.target.closest('#addTaskBtn') : null;
+      if (add){ addDraftTask(); return; }
+      const del = e.target.closest ? e.target.closest('.task-del') : null;
+      if (del){ deleteDraftTask(Number(del.getAttribute('data-del'))); return; }
+    });
+  }
+
+  const histModal = $('histModal');
+  if (histModal){
+    histModal.addEventListener('click', function(e){
+      if (e.target === histModal) closeHistory();
+    });
+  }
+  const histClose = $('histCloseBtn');
+  if (histClose) histClose.addEventListener('click', closeHistory);
+
+  const histKidTabs = $('histKidTabs');
+  if (histKidTabs){
+    histKidTabs.addEventListener('click', function(e){
+      const btn = e.target.closest ? e.target.closest('.set-tab') : null;
+      if (!btn) return;
+      hist.kid = btn.getAttribute('data-hkid');
+      renderHistKidTabs();
+      renderHistViewTabs();
+      renderHistBody();
+    });
+  }
+  const histViewTabs = $('histViewTabs');
+  if (histViewTabs){
+    histViewTabs.addEventListener('click', function(e){
+      const btn = e.target.closest ? e.target.closest('.set-tab') : null;
+      if (!btn) return;
+      hist.view = btn.getAttribute('data-hview') === 'stamp' ? 'stamp' : 'history';
+      renderHistViewTabs();
+      renderHistBody();
+    });
+  }
+  const histBody = $('histBody');
+  if (histBody){
+    histBody.addEventListener('click', function(e){
+      const btn = e.target.closest ? e.target.closest('[data-act]') : null;
+      if (!btn) return;
+      const act = btn.getAttribute('data-act');
+      if (act === 'prev' && hist.monthOffset > -24){ hist.monthOffset -= 1; renderHistBody(); }
+      else if (act === 'next' && hist.monthOffset < 0){ hist.monthOffset += 1; renderHistBody(); }
+      else if (act === 'newboard'){
+        const k = kidById(hist.kid) || currentKid();
+        if (k && startNewBoard(k.id)){
+          playFanfare(k.id);
+          toast('🎁 선물을 주고 새 도장판을 시작했어요! ' + k.name + ', 축하해 🎉');
+          renderHistBody();
+          renderStampBadge();
+          postSheet(k.id);
+        }
+      }
+    });
+  }
 
   const setTabs = $('setTabs');
   if (setTabs){
@@ -1878,6 +2598,7 @@ function bindEvents(){
 
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape'){
+      if (!$('histModal').hidden) closeHistory();
       if (!$('modal').hidden) closeSettings();
       return;
     }
@@ -1889,6 +2610,10 @@ function bindEvents(){
       toggleFullscreen();
     } else if (e.key === 's' || e.key === 'S'){
       openSettings();
+    } else if (e.key === 'h' || e.key === 'H'){
+      if (!$('modal').hidden) return;
+      if ($('histModal').hidden) openHistory(state.active, 'history');
+      else closeHistory();
     } else if (e.key === 'm' || e.key === 'M'){
       toggleSound();
     } else if (e.key === 'r' || e.key === 'R'){
@@ -1919,12 +2644,17 @@ function init(){
   state.kids.forEach(function(k){ if (k.id === savedActive) found = true; });
   state.active = found ? savedActive : state.kids[0].id;
   state.checks = loadChecks();
+  loadHistory();
+  loadStamps();
+  state.sheetUrl = store.get(KEY.sheetUrl) || '';
   state.phraseOffset = loadPhraseOffset();
   state.dateKey = dayKey();
   lastFoot = '';
   lastClock = '';
   lastDate = '';
   lastGreet = '';
+
+  state.kids.forEach(function(k){ ensureChecks(k); syncStampForToday(k.id); });
 
   renderTabs();
   renderKid();

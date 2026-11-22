@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>대시보드 검증</title>
+<style>
+  html,body{margin:0;padding:0;background:#fff}
+  #frame{border:0;display:block;background:#fff}
+  #out{font:12px/1.5 monospace;white-space:pre-wrap;margin:6px;padding:10px;background:#101828;color:#d8e3ff;min-height:200px}
+  .ok{color:#7ff0c0}.bad{color:#ff9aa8}
+</style>
+</head>
+<body>
+<iframe id="frame" title="dash"></iframe>
+<pre id="out">starting...</pre>
+<script>
+(function(){
+'use strict';
+var Q = new URLSearchParams(location.search);
+var W = parseInt(Q.get('w'), 10) || 1024;
+var H = parseInt(Q.get('h'), 10) || 768;
+var SCENE = Q.get('scene') || 'layout';
+var frame = document.getElementById('frame');
+var out = document.getElementById('out');
+frame.width = W; frame.height = H;
+frame.style.width = W + 'px'; frame.style.height = H + 'px';
+
+var lines = [];
+function log(s){ lines.push(s); out.textContent = lines.join('\n'); }
+var fails = 0;
+function assert(name, cond, extra){
+  if (!cond) fails++;
+  log((cond ? 'PASS ' : 'FAIL ') + name + (extra != null ? ' :: ' + extra : ''));
+  return cond;
+}
+function finish(){
+  log((fails ? '### RESULT: ' + fails + ' FAIL(S)' : '### RESULT: ALL PASS'));
+  log('===DONE===');
+  document.title = 'DONE-' + fails;
+}
+function seq(steps){
+  var i = 0;
+  function next(){
+    if (i >= steps.length){ finish(); return; }
+    var s = steps[i++];
+    try { s(next); } catch(e){ log('EXCEPTION ' + (e && e.stack ? e.stack : e)); finish(); }
+  }
+  next();
+}
+function load(cb, qs){
+  frame.onload = function(){
+    setTimeout(function(){ cb(frame.contentWindow, frame.contentDocument); }, 500);
+  };
+  frame.src = 'index.html?_' + Date.now() + (qs || '');
+}
+/* storage seed: pairs = [[key, rawString], ...] */
+function seeded(pairs, cb){
+  frame.onload = function(){
+    var ls = frame.contentWindow.localStorage;
+    ls.clear();
+    (pairs || []).forEach(function(p){ ls.setItem(p[0], p[1]); });
+    frame.onload = function(){ setTimeout(function(){ cb(frame.contentWindow, frame.contentDocument); }, 550); };
+    frame.src = 'index.html?run=' + Date.now();
+  };
+  frame.src = 'index.html?seed=' + Date.now();
+}
+function kstNowDate(){
+  var n = new Date(Date.now() + 9 * 3600 * 1000);
+  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+}
+function keyOff(off){
+  var d = new Date(kstNowDate().getTime() + off * 86400000);
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}
+function md(key){ return Number(key.slice(5, 7)) + '/' + Number(key.slice(8, 10)); }
+
+function metrics(w, d){
+  var de = d.documentElement;
+  var panel = d.getElementById('kidPanel');
+  var list = d.getElementById('checklist');
+  var top = d.querySelector('.topbar');
+  var actions = d.querySelector('.tb-actions');
+  return {
+    viewport: w.innerWidth + 'x' + w.innerHeight,
+    docScroll: de.scrollHeight, docClient: de.clientHeight,
+    bodyScroll: d.body.scrollHeight,
+    docOverflow: de.scrollHeight - de.clientHeight,
+    panelScroll: panel ? panel.scrollHeight : null,
+    panelClient: panel ? panel.clientHeight : null,
+    panelOverflow: panel ? panel.scrollHeight - panel.clientHeight : null,
+    listOverflow: list ? list.scrollHeight - list.clientHeight : null,
+    topbarOverflow: top ? top.scrollWidth - top.clientWidth : null,
+    actionsW: actions ? Math.round(actions.getBoundingClientRect().width) : null,
+    pills: d.querySelectorAll('.tb-actions .pill').length,
+    checks: d.querySelectorAll('.check-item').length,
+    checkHeadOverflow: (function(){
+      var h = d.querySelector('.check-head');
+      return h ? h.scrollWidth - h.clientWidth : null;
+    })()
+  };
+}
+
+/* ---------------- scenes ---------------- */
+if (SCENE === 'layout'){
+  load(function(w, d){
+    var m = metrics(w, d);
+    log('size=' + W + 'x' + H + ' viewport=' + m.viewport);
+    Object.keys(m).forEach(function(k){ log('  ' + k + '=' + m[k]); });
+    assert('문서 스크롤 0 (' + W + 'x' + H + ')', m.docOverflow <= 0, 'overflow=' + m.docOverflow);
+    assert('아이 패널 넘침 없음', m.panelOverflow <= 0, 'overflow=' + m.panelOverflow);
+    assert('상단 바 한 줄', m.topbarOverflow <= 0, 'overflow=' + m.topbarOverflow);
+    assert('체크 헤더 넘침 없음', m.checkHeadOverflow <= 0, 'overflow=' + m.checkHeadOverflow);
+    assert('상단 버튼 4개(기록·소리·전체화면·설정)', m.pills === 4, 'pills=' + m.pills);
+    /* 모달 크기 확인 */
+    d.getElementById('histBtn').click();
+    setTimeout(function(){
+      var card = d.querySelector('.hist-card');
+      var r = card.getBoundingClientRect();
+      var modalOverflow = card.scrollHeight - card.clientHeight;
+      log('  histModal card=' + Math.round(r.width) + 'x' + Math.round(r.height) + ' innerOverflow=' + modalOverflow);
+      log('  calCells=' + d.querySelectorAll('.cal-cell').length + ' doneCells=' + d.querySelectorAll('.cal-cell.done').length);
+      d.querySelector('[data-hview="stamp"]').click();
+      setTimeout(function(){
+        log('  stampSlots=' + d.querySelectorAll('.coupon .slot').length + ' onSlots=' + d.querySelectorAll('.coupon .slot.on').length);
+        log('  stampsOverflow=' + (d.querySelector('.hist-card').scrollHeight - d.querySelector('.hist-card').clientHeight));
+        d.getElementById('histCloseBtn').click();
+        d.getElementById('setBtn').click();
+        setTimeout(function(){
+          var sc = d.querySelector('#modal .modal-card');
+          log('  settingsModal=' + Math.round(sc.getBoundingClientRect().width) + 'x' + Math.round(sc.getBoundingClientRect().height) + ' overflow=' + (sc.scrollHeight - sc.clientHeight));
+          log((fails ? '### RESULT: ' + fails + ' FAIL(S)' : '### RESULT: ALL PASS'));
+          log('===DONE===');
+          document.title = 'DONE-' + fails;
+        }, 300);
+      }, 300);
+    }, 300);
+  });
+} else if (SCENE === 'flow'){
+  var today = keyOff(0);
+  seq([
+    function(next){ seeded([], function(w, d){ next(); }); },
+    function(next){
+      var w = frame.contentWindow, d = frame.contentDocument;
+      assert('기본 할 일 6개', d.querySelectorAll('.check-item').length === 6, d.querySelectorAll('.check-item').length);
+      var badge = d.querySelector('#stampBadge');
+      assert('도장 배지 표시', !!badge && /0/.test(badge.textContent), badge ? badge.textContent : 'none');
+      assert('배지 점 10개', badge && badge.querySelectorAll('.stamp-mini i').length === 10, badge ? badge.querySelectorAll('.stamp-mini i').length : 0);
+      next();
+    },
+    function(next){
+      var w = frame.contentWindow, d = frame.contentDocument;
+      var n = 0;
+      (function clickNext(){
+        if (n >= 6){ next(); return; }
+        var items = d.querySelectorAll('.check-item');
+        items[n].click();
+        n++;
+        setTimeout(clickNext, 60);
+      })();
+    },
+    function(next){
+      var w = frame.contentWindow, d = frame.contentDocument;
+      log('  checkCount=' + d.getElementById('checkCount').textContent + ' badge=' + d.querySelector('#stampBadge').textContent);
+      assert('6개 모두 체크', d.getElementById('checkCount').textContent === '6/6', d.getElementById('checkCount').textContent);
+      var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
+      var slots = (st.seoyun && st.seoyun.slots) || [];
+      assert('도장 1개 발급', slots.length === 1 && slots[0].date === today, JSON.stringify(slots));
+      var hi = JSON.parse(w.localStorage.getItem('wdash.history.v1') || '{}');
+      assert('오늘 기록 저장(allDone)', hi[today] && hi[today].seoyun && hi[today].seoyun.allDone === true, JSON.stringify(hi[today]));
+      next();
+    },
+    function(next){
+      var d = frame.contentDocument;
+      d.querySelectorAll('.check-item')[2].click();
+      setTimeout(function(){
+        var st = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.stamps.v1') || '{}');
+        assert('체크 해제 시 도장 회수', ((st.seoyun || {}).slots || []).length === 0, JSON.stringify(st.seoyun));
+        assert('회수 후 배지 0', /0/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
+        d.querySelectorAll('.check-item')[2].click();
+        setTimeout(function(){
+          var st2 = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.stamps.v1') || '{}');
+          var slots = (st2.seoyun || {}).slots || [];
+          var cnt = slots.filter(function(s){ return s.date === today; }).length;
+          assert('다시 체크하면 도장 1개(중복 없음)', cnt === 1, JSON.stringify(slots));
+          assert('같은 날짜 도장 중복 없음', slots.length === 1, 'len=' + slots.length);
+          next();
+        }, 120);
+      }, 120);
+    },
+    function(next){
+      var d = frame.contentDocument;
+      d.getElementById('histBtn').click();
+      setTimeout(function(){
+        var modal = d.getElementById('histModal');
+        assert('기록 모달 열림', modal.hidden === false);
+        var body = d.getElementById('histBody').textContent;
+        log('  body=' + body.replace(/\s+/g, ' ').slice(0, 160));
+        assert('이번 주 1회', /이번 주\s*1회/.test(body.replace(/\s+/g, ' ')), body.replace(/\s+/g, ' ').slice(0, 80));
+        assert('연속 1일', /연속 성공\s*1일/.test(body.replace(/\s+/g, ' ')));
+        assert('달력 오늘 완료 표시', d.querySelectorAll('.cal-cell.done').length === 1, d.querySelectorAll('.cal-cell.done').length);
+        assert('달력 42칸(6주)', d.querySelectorAll('.cal-cell').length >= 35, d.querySelectorAll('.cal-cell').length);
+        d.querySelector('[data-hview="stamp"]').click();
+        setTimeout(function(){
+          assert('도장판 탭 슬롯 10칸', d.querySelectorAll('.coupon .slot').length === 10, d.querySelectorAll('.coupon .slot').length);
+          assert('도장 1칸 찍힘', d.querySelectorAll('.coupon .slot.on').length === 1, d.querySelectorAll('.coupon .slot.on').length);
+          assert('오늘 날짜 표시', d.querySelector('.coupon .slot.on').textContent.indexOf(md(today)) >= 0, d.querySelector('.coupon .slot.on').textContent);
+          d.getElementById('histCloseBtn').click();
+          next();
+        }, 200);
+      }, 250);
+    },
+    function(next){
+      var d = frame.contentDocument;
+      d.getElementById('setBtn').click();
+      setTimeout(function(){
+        assert('설정할 일 6칸', d.querySelectorAll('#setTasks input').length === 6, d.querySelectorAll('#setTasks input').length);
+        d.getElementById('addTaskBtn').click();
+        d.getElementById('addTaskBtn').click();
+        setTimeout(function(){
+          assert('할 일 추가 후 8칸', d.querySelectorAll('#setTasks input').length === 8, d.querySelectorAll('#setTasks input').length);
+          d.querySelector('#setTask6').value = '저녁 설거지 돕기';
+          d.querySelector('#setTask7').value = '내일 가방 미리 싸기';
+          d.getElementById('saveBtn').click();
+          setTimeout(function(){
+            assert('저장 후 체크리스트 8개', d.querySelectorAll('.check-item').length === 8, d.querySelectorAll('.check-item').length);
+            assert('추가 항목은 미체크(6/8)', d.getElementById('checkCount').textContent === '6/8', d.getElementById('checkCount').textContent);
+            var st = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.settings.v2') || '{}');
+            assert('설정 8개 저장', st.seoyun && st.seoyun.tasks.length === 8 && st.seoyun.tasks[7] === '내일 가방 미리 싸기', JSON.stringify(st.seoyun && st.seoyun.tasks));
+            next();
+          }, 250);
+        }, 200);
+      }, 250);
+    },
+    function(next){
+      var d = frame.contentDocument;
+      d.getElementById('setBtn').click();
+      setTimeout(function(){
+        var dels = d.querySelectorAll('#setTasks .task-del');
+        assert('삭제 버튼 8개', dels.length === 8, dels.length);
+        dels[7].click();
+        setTimeout(function(){
+          assert('삭제 후 입력 7칸', d.querySelectorAll('#setTasks input').length === 7, d.querySelectorAll('#setTasks input').length);
+          d.getElementById('saveBtn').click();
+          setTimeout(function(){
+            assert('저장 후 체크리스트 7개', d.querySelectorAll('.check-item').length === 7, d.querySelectorAll('.check-item').length);
+            assert('삭제 후 6/7', d.getElementById('checkCount').textContent === '6/7', d.getElementById('checkCount').textContent);
+            next();
+          }, 200);
+        }, 200);
+      }, 250);
+    },
+    function(next){
+      /* 가운데 항목 삭제 → 남은 항목 체크 상태 유지되는지 */
+      var d = frame.contentDocument;
+      d.getElementById('setBtn').click();
+      setTimeout(function(){
+        d.querySelector('#setTasks .task-del[data-del="1"]').click();
+        setTimeout(function(){
+          d.getElementById('saveBtn').click();
+          setTimeout(function(){
+            var txt = Array.prototype.map.call(d.querySelectorAll('.check-item .txt'), function(e){ return e.textContent; });
+            log('  tasks=' + txt.join(' | '));
+            assert('가운데 삭제 후 6개', d.querySelectorAll('.check-item').length === 6, d.querySelectorAll('.check-item').length);
+            assert('삭제한 항목 빠짐', txt.indexOf('아침밥 먹기') < 0, txt.join(','));
+            next();
+          }, 200);
+        }, 200);
+      }, 250);
+    },
+    function(next){
+      /* 기본값으로 되돌리기 */
+      var d = frame.contentDocument;
+      d.getElementById('setBtn').click();
+      setTimeout(function(){
+        d.getElementById('resetBtn').click();
+        setTimeout(function(){
+          assert('기본값 되돌리기 6칸', d.querySelectorAll('#setTasks input').length === 6);
+          d.getElementById('saveBtn').click();
+          setTimeout(function(){
+            assert('복원 후 6개', d.querySelectorAll('.check-item').length === 6, d.querySelectorAll('.check-item').length);
+            next();
+          }, 200);
+        }, 200);
+      }, 250);
+    },
+    function(next){
+      /* 구글 시트 URL + fetch 전송 확인 */
+      seeded([['wdash.sheetUrl.v1', 'https://script.google.com/macros/s/TEST_TOKEN/exec']], function(w, d){
+        var calls = [];
+        w.fetch = function(url, opts){ calls.push({ url: url, opts: opts || {} }); return Promise.resolve({ ok: true }); };
+        assert('시트 URL 입력칸 있음', !!d.getElementById('setSheetUrl'), '');
+        d.querySelectorAll('.check-item')[0].click();
+        setTimeout(function(){
+          assert('시트로 POST 1건', calls.length === 1, calls.length);
+          if (calls.length){
+            var o = calls[0].opts;
+            assert('POST 방식·no-cors', o.method === 'POST' && o.mode === 'no-cors', o.method + '/' + o.mode);
+            var body = {};
+            try { body = JSON.parse(o.body); } catch(e){}
+            log('  payload=' + JSON.stringify(body));
+            assert('payload 필드', body.date === today && body.kidId === 'seoyun' && body.kidName === '서윤'
+              && typeof body.done === 'number' && typeof body.total === 'number'
+              && typeof body.allDone === 'boolean' && typeof body.stampsCount === 'number'
+              && typeof body.completedBoards === 'number' && !!body.updatedAt, JSON.stringify(body));
+            assert('URL 일치', calls[0].url.indexOf('script.google.com') >= 0, calls[0].url);
+          }
+          next();
+        }, 250);
+      });
+    },
+    function(next){
+      /* 시트 URL 이 비어 있으면 요청 없음 */
+      seeded([], function(w, d){
+        var calls = [];
+        w.fetch = function(url, opts){ calls.push(url); return Promise.resolve({}); };
+        d.querySelectorAll('.check-item')[0].click();
+        setTimeout(function(){
+          assert('URL 없으면 요청 0건', calls.length === 0, calls.length);
+          next();
+        }, 250);
+      });
+    }
+  ]);
+} else if (SCENE === 'board'){
+  var today2 = keyOff(0);
+  var slots9 = [];
+  var hist = {};
+  for (var i = 9; i >= 1; i--){
+    var k = keyOff(-i);
+    slots9.push({ date: k });
+    hist[k] = { seoyun: { done: 6, total: 6, allDone: true, tasks: [true, true, true, true, true, true] } };
+  }
+  var stampSeed = { seoyun: { slots: slots9, completedBoards: 0 } };
+  var checksSeed = { date: today2, data: {
+    seoyun: [true, true, true, true, true, true],
+    chaeyun: [false, false, false, false, false, false],
+    seungyun: [false, false, false, false, false, false]
+  } };
+  seq([
+    function(next){
+      seeded([
+        ['wdash.stamps.v1', JSON.stringify(stampSeed)],
+        ['wdash.history.v1', JSON.stringify(hist)],
+        ['wdash.checks.v2', JSON.stringify(checksSeed)]
+      ], function(w, d){ next(); });
+    },
+    function(next){
+      var w = frame.contentWindow, d = frame.contentDocument;
+      var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
+      assert('9칸 + 오늘 = 10칸', ((st.seoyun || {}).slots || []).length === 10, JSON.stringify((st.seoyun || {}).slots));
+      var badge = d.querySelector('#stampBadge');
+      log('  badge=' + badge.textContent);
+      assert('배지 선물 표시', /선물/.test(badge.textContent), badge.textContent);
+      assert('체크 6/6', d.getElementById('checkCount').textContent === '6/6');
+      d.getElementById('histBtn').click();
+      setTimeout(function(){
+        d.querySelector('[data-hview="stamp"]').click();
+        setTimeout(function(){
+          assert('도장 10칸 모두 찍힘', d.querySelectorAll('.coupon .slot.on').length === 10, d.querySelectorAll('.coupon .slot.on').length);
+          assert('10칸 완성 축하 문구', /도장 10개 완성/.test(d.getElementById('histBody').textContent), d.getElementById('histBody').textContent.replace(/\s+/g, ' ').slice(0, 120));
+          var btn = d.querySelector('[data-act="newboard"]');
+          assert('새 도장판 시작 버튼', !!btn, btn ? btn.textContent : 'none');
+          btn.click();
+          setTimeout(function(){
+            var st2 = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.stamps.v1') || '{}');
+            var s2 = st2.seoyun || {};
+            assert('새 판: 도장 0칸', (s2.slots || []).length === 0, JSON.stringify(s2.slots));
+            assert('완성한 판 1판', s2.completedBoards === 1, s2.completedBoards);
+            assert('같은 날 재발급 없음', d.querySelectorAll('.coupon .slot.on').length === 0, d.querySelectorAll('.coupon .slot.on').length);
+            assert('배지 0/10', /0/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
+            d.getElementById('histCloseBtn').click();
+            /* 같은 날 체크 해제→재체크 해도 새 판에 또 찍히지 않아야 함 */
+            d.querySelectorAll('.check-item')[5].click();
+            setTimeout(function(){
+              d.querySelectorAll('.check-item')[5].click();
+              setTimeout(function(){
+                var st3 = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.stamps.v1') || '{}');
+                assert('같은 날 두 번째 도장 없음', ((st3.seoyun || {}).slots || []).length === 0, JSON.stringify((st3.seoyun || {}).slots));
+                next();
+              }, 200);
+            }, 200);
+          }, 250);
+        }, 250);
+      }, 250);
+    },
+    function(next){
+      /* 달력에 지난 9일 표시 + 연속 9일 */
+      var d = frame.contentDocument;
+      d.getElementById('histBtn').click();
+      setTimeout(function(){
+        var body = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
+        log('  stats=' + body.slice(0, 140));
+        assert('연속 성공 10일', /연속 성공\s*10일/.test(body), body.slice(0, 140));
+        assert('이번 달 10회 이상', /이번 달\s*1[0-9]회/.test(body), body.slice(0, 140));
+        next();
+      }, 250);
+    }
+  ]);
+} else if (SCENE === 'shot'){
+  load(function(w, d){
+    var m = metrics(w, d);
+    log('shot ' + W + 'x' + H + ' docOverflow=' + m.docOverflow + ' panelOverflow=' + m.panelOverflow);
+    log('===DONE===');
+    document.title = 'DONE';
+  });
+}
+})();
+</script>
+</body>
+</html>
