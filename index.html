@@ -535,7 +535,11 @@ body{
 }
 .set-tab + .set-tab{margin-left:8px}
 .set-tab.active{border-color:var(--kid);background:var(--kid-soft);color:var(--kid-deep)}
-.set-row{display:flex;align-items:center;margin-bottom:9px}
+.set-row{display:flex;align-items:center;margin-bottom:7px}
+.set-groups{display:flex;flex-wrap:wrap;margin:0 -8px}
+.set-group{flex:1 1 46%;min-width:0;padding:0 8px;box-sizing:border-box}
+.set-group .task-add-wrap{margin-left:0}
+.set-group .set-row label{width:46px}
 .set-row label{margin-right:10px;font-size:12px;font-weight:900;color:var(--ink-2);width:64px;flex:0 0 auto}
 .set-row input[type=time],.set-row input[type=text]{
   flex:1 1 auto;min-width:0;font-family:inherit;font-size:13.5px;font-weight:800;color:var(--ink);
@@ -622,6 +626,7 @@ body{
 @media (max-width:620px){
   .clock{font-size:30px}
   .pill{font-size:12px;padding:8px 11px}
+  .set-group{flex:1 1 100%}
 }
 
 /* ---------- 낮은 화면 (가로 1024x600 같은 구형 태블릿) ---------- */
@@ -2331,9 +2336,10 @@ function renderSetForm(){
   if (!draft || !draftKid) return;
   const d = draft[draftKid];
   $('setTime').value = d.time;
-  $('setTasks').innerHTML =
-    setGroupHTML('m', '아침 할 일', '☀️', d.morning, MORNING_MAX, '최소 ' + MORNING_MIN + '개')
-    + setGroupHTML('e', '저녁 할 일', '🌙', d.evening, EVENING_MAX, '비워 두어도 돼요');
+  $('setTasks').innerHTML = '<div class="set-groups">'
+    + '<div class="set-group">' + setGroupHTML('m', '아침 할 일', '☀️', d.morning, MORNING_MAX, '최소 ' + MORNING_MIN + '개') + '</div>'
+    + '<div class="set-group">' + setGroupHTML('e', '저녁 할 일', '🌙', d.evening, EVENING_MAX, '비워 두어도 돼요') + '</div>'
+    + '</div>';
 }
 
 function addDraftTask(sec){
