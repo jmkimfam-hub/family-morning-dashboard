@@ -121,7 +121,7 @@ body{
 /* ---------- 공통 영역 (날씨·문구·사자성어) ---------- */
 .common{
   flex:0 0 auto;
-  height:200px;height:clamp(176px, 26.5vh, 228px);
+  height:200px;height:clamp(186px, 27.8vh, 236px);
   display:flex;
   align-items:stretch;
   margin-bottom:10px;min-height:0;
@@ -143,18 +143,22 @@ body{
 .wx-temp{font-size:28px;font-size:clamp(24px,3.4vh,32px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
 .wx-temp small{font-size:.5em;font-weight:800;color:var(--ink-3);margin-left:1px}
 .wx-state{font-size:12px;font-weight:800;color:var(--ink-2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wx-chips{display:flex;flex-wrap:wrap;margin-top:8px}
+.wx-chips{display:flex;flex-wrap:wrap;margin-top:6px}
 .chip{margin-right:5px;font-size:11px;font-weight:700;color:var(--ink-2);background:#f4f7fd;border-radius:999px;padding:3px 8px;white-space:nowrap}
 .chip b{color:var(--ink);font-weight:900}
-.wx-rain{display:flex;margin-top:8px}
+.wx-rain{display:flex;margin-top:6px}
 .rain-item{flex:1 1 0;min-width:0;background:linear-gradient(160deg,#f2fbff,#eef6ff);border-radius:12px;padding:5px 8px;font-size:10.5px;font-weight:800;color:var(--ink-2);display:flex;align-items:center}
 .rain-item + .rain-item{margin-left:6px}
 .rain-item b{font-size:13px;color:var(--sky-deep);font-variant-numeric:tabular-nums;margin-left:auto}
 .rain-item b i{font-style:normal;font-size:9.5px;color:var(--ink-3)}
-.wx-tip{font-size:11.5px;font-weight:800;border-radius:12px;padding:5px 9px;margin-top:6px;background:#effaf6;color:#22866f;display:flex;align-items:center;line-height:1.25}
+.wx-tip{font-size:11.5px;font-weight:800;border-radius:12px;padding:5px 9px;margin-top:5px;background:#effaf6;color:#22866f;display:flex;align-items:center;line-height:1.25}
 .wx-tip.warn{background:#fff4e6;color:#b56a12}
 .wx-tip.rain{background:#eaf5ff;color:#2b76ad}
 .wx-tip.bad{background:#ffeef0;color:#c04a5e}
+.wx-tip.wear{
+  background:#fff8e7;color:#94670a;font-size:11px;padding:4px 8px;margin-top:4px;flex:0 0 auto;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.25;
+}
 .wx-foot{margin-top:auto;padding-top:4px;font-size:10px;font-weight:700;color:var(--ink-3);display:flex;justify-content:space-between}
 .wx-foot .notice{margin-left:6px;color:#c04a5e}
 
@@ -168,15 +172,16 @@ body{
 .phrase-text::after{content:"”";font-size:1.8em;color:#ffc2d8;line-height:0;vertical-align:-.2em;margin-left:2px}
 .phrase-foot{display:flex;justify-content:flex-end;margin-top:4px}
 
-/* 사자성어 */
+/* 사자성어 — 한자·독음은 위, 뜻·예문은 아래로 충분히 띄운다 */
 .idiom{gap:0}
-.idiom-head{display:flex;align-items:center;justify-content:space-between}
+.idiom-head{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+.idiom-char{flex:0 0 auto;margin-top:6px;padding-bottom:2px}
 .idiom-hanja{
-  font-size:21px;font-size:clamp(18px,2.5vh,23px);font-weight:900;letter-spacing:2px;margin-top:auto;
+  font-size:21px;font-size:clamp(18px,2.5vh,23px);font-weight:900;letter-spacing:2px;margin-top:0;line-height:1.15;
   color:#5b63a8;font-family:"Noto Serif KR","Nanum Myeongjo",serif;
 }
-.idiom-reading{font-size:11.5px;font-weight:900;color:var(--lemon-deep);letter-spacing:2px;margin-top:0}
-.idiom-body{flex:0 1 auto;min-height:0;margin-top:4px;margin-bottom:auto;overflow:hidden}
+.idiom-reading{font-size:11.5px;font-weight:900;color:var(--lemon-deep);letter-spacing:2px;margin-top:2px}
+.idiom-body{flex:0 0 auto;min-height:0;margin-top:auto;margin-bottom:0;padding-top:8px;overflow:hidden}
 .idiom-meaning{font-size:11.5px;font-weight:800;line-height:1.35;margin:0;color:#4c5680;word-break:keep-all}
 .idiom-example{font-size:10.5px;font-weight:700;line-height:1.3;margin:4px 0 0;color:var(--ink-3);word-break:keep-all}
 .idiom-example b{color:#98a2c4}
@@ -444,7 +449,7 @@ body{
   .app{padding:8px 12px 10px}
   .topbar{padding:6px 14px;margin-bottom:8px}
   .clock{font-size:30px}
-  .common{height:158px;margin-bottom:8px}
+  .common{height:174px;margin-bottom:8px}
   .tabs{margin-bottom:8px}
   .tab{min-height:46px;padding:5px 10px}
   .tab-avatar{width:32px;height:32px}
@@ -469,6 +474,9 @@ body{
   .wx-rain{margin-top:3px}
   .rain-item{padding:2px 7px;font-size:10px}
   .wx-tip{padding:2px 8px;margin-top:2px;font-size:11px}
+  .wx-tip.wear{padding:2px 8px;margin-top:2px;font-size:10.5px}
+  .idiom-char{margin-top:3px}
+  .idiom-body{padding-top:4px}
   .wx-foot{padding-top:1px}
 }
 
@@ -521,6 +529,7 @@ body{
         <div class="rain-item">🏫 하교 14~16시 <b><span id="rainOut">–</span><i>%</i></b></div>
       </div>
       <div class="wx-tip" id="wxTip">☂️ 비 소식을 확인하고 있어요</div>
+      <div class="wx-tip wear" id="wxWear">🧥 옷차림을 확인하고 있어요</div>
       <div class="wx-foot"><span id="wxTime">–</span><span class="notice" id="wxNotice"></span></div>
     </article>
 
@@ -536,8 +545,10 @@ body{
       <div class="idiom-head">
         <div class="card-label">📚 오늘의 사자성어</div>
       </div>
-      <div class="idiom-hanja" id="idiomHanja">溫故知新</div>
-      <div class="idiom-reading" id="idiomReading">온고지신</div>
+      <div class="idiom-char">
+        <div class="idiom-hanja" id="idiomHanja">溫故知新</div>
+        <div class="idiom-reading" id="idiomReading">온고지신</div>
+      </div>
       <div class="idiom-body" id="idiomBody">
         <p class="idiom-meaning" id="idiomMeaning">옛것을 익혀 새것을 안다.</p>
         <p class="idiom-example" id="idiomExample"><b>예:</b> 옛날 책을 다시 읽으며 온고지신을 실천했어요.</p>
@@ -1377,7 +1388,7 @@ function renderIdiom(){
    ============================================================ */
 const WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=35.1914&longitude=129.0976&timezone=Asia%2FSeoul'
   + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation'
-  + '&hourly=temperature_2m,precipitation_probability,weather_code'
+  + '&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code'
   + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset'
   + '&forecast_days=2';
 
@@ -1406,6 +1417,62 @@ function maxRain(hourly, day, hours){
     if (typeof p === 'number' && (mx === null || p > mx)) mx = p;
   }
   return mx;
+}
+
+function meanHour(hourly, day, hours, key){
+  if (!hourly || !hourly.time || !hourly[key]) return null;
+  let sum = 0, n = 0;
+  for (let i = 0; i < hourly.time.length; i++){
+    const t = String(hourly.time[i]);
+    if (day && t.slice(0, 10) !== day) continue;
+    const hh = Number(t.slice(11, 13));
+    if (hours.indexOf(hh) === -1) continue;
+    const v = hourly[key][i];
+    if (typeof v === 'number'){ sum += v; n++; }
+  }
+  return n ? sum / n : null;
+}
+
+/* ---------- 오늘의 옷차림 ----------
+   아이가 집을 나서는 등교 시간(7~9시)의 기온을 기준으로 하고,
+   체감온도가 그보다 2도 이상 낮으면 체감을 기준으로 바꾼다.
+   하루 최고-최저 차이가 10도 이상이고 낮 최고가 15도 이상이면
+   벗었다 입을 겉옷을 덧붙인다. */
+const WEAR_BANDS = [
+  { max:4,  text:'🧥 두꺼운 패딩·목도리·장갑 꼭 챙겨요' },
+  { max:8,  text:'🧥 패딩이나 두꺼운 코트, 니트 따뜻하게!' },
+  { max:11, text:'🧥 자켓·경량패딩에 따뜻한 겉옷 입어요' },
+  { max:16, text:'🧶 가디건·맨투맨·바람막이가 딱 좋아요' },
+  { max:19, text:'👕 긴팔 티나 얇은 겉옷 챙겨 입어요' },
+  { max:22, text:'👕 얇은 긴팔이나 반팔+가벼운 겉옷!' },
+  { max:27, text:'👕 시원한 반팔이나 얇은 셔츠 입어요' },
+  { max:999, text:'☀️ 아주 더워요! 시원한 반팔·물 많이 마시기' }
+];
+
+function wearTipText(hourly, daily, cur){
+  const today = (daily && daily.time && daily.time[0]) ? daily.time[0] : null;
+  const goT = meanHour(hourly, today, [7, 8, 9], 'temperature_2m');
+  const goF = meanHour(hourly, today, [7, 8, 9], 'apparent_temperature');
+  let base = null;
+  if (goT != null) base = goT;
+  if (goF != null && (base == null || goF < base - 2)) base = goF;
+  if (base == null && cur){
+    if (typeof cur.apparent_temperature === 'number') base = cur.apparent_temperature;
+    else if (typeof cur.temperature_2m === 'number') base = cur.temperature_2m;
+  }
+  if (base == null) return null;
+  const t = Math.round(base);
+  let band = WEAR_BANDS[WEAR_BANDS.length - 1];
+  for (let i = 0; i < WEAR_BANDS.length; i++){
+    if (t <= WEAR_BANDS[i].max){ band = WEAR_BANDS[i]; break; }
+  }
+  let gap = null;
+  const hi = (daily && daily.temperature_2m_max) ? daily.temperature_2m_max[0] : null;
+  const lo = (daily && daily.temperature_2m_min) ? daily.temperature_2m_min[0] : null;
+  if (typeof hi === 'number' && typeof lo === 'number') gap = hi - lo;
+  let add = '';
+  if (gap != null && gap >= 10 && typeof hi === 'number' && hi >= 15) add = ' · 일교차 커요, 겉옷 하나 더!';
+  return band.text + add;
 }
 
 function setText(id, v){
@@ -1452,6 +1519,12 @@ function renderWeather(w, stale, reason){
     }
   }
 
+  const wearEl = $('wxWear');
+  if (wearEl){
+    const wearText = wearTipText(hourly, daily, cur);
+    wearEl.textContent = wearText || '🧥 날씨를 불러오면 옷차림을 알려드려요';
+  }
+
   const tEl = $('wxTime');
   if (tEl){
     const at = cur.time ? String(cur.time).slice(11, 16) : '';
@@ -1477,6 +1550,11 @@ function applyCached(reason){
   if (nt) nt.textContent = reason;
   const tip = $('wxTip');
   if (tip){ tip.className = 'wx-tip warn'; tip.textContent = '⚠️ 날씨를 불러오지 못했어요'; }
+  const wearFail = $('wxWear');
+  if (wearFail){
+    wearFail.className = 'wx-tip wear';
+    wearFail.textContent = '🧥 날씨를 불러오면 옷차림을 알려드려요';
+  }
   return false;
 }
 
