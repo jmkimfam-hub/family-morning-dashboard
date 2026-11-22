@@ -115,7 +115,7 @@ function metrics(w, d){
 
 /* ---------------- scenes ---------------- */
 if (SCENE === 'layout'){
-  load(function(w, d){
+  seeded([], function(w, d){
     var m = metrics(w, d);
     log('size=' + W + 'x' + H + ' viewport=' + m.viewport);
     Object.keys(m).forEach(function(k){ log('  ' + k + '=' + m[k]); });
