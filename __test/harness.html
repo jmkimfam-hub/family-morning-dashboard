@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>dashboard layout check</title>
+<style>
+  body{font-family:monospace;margin:0;padding:6px;background:#1b1b22;color:#eee;font-size:12px}
+  iframe{border:2px solid #3f6;display:block;background:#fff}
+  .box{margin:0 0 8px}
+  #out{white-space:pre-wrap;font-size:11px;line-height:1.35;max-width:1900px}
+  h3{margin:4px 0;font-size:12px;color:#8fd}
+</style>
+</head>
+<body>
+<div id="out">loading…</div>
+<script>
+var out = [];
+function meas(f, label){
+  var d = f.contentDocument, win = f.contentWindow;
+  var q = function(s){ return d.querySelector(s); };
+  var r = { label: label };
+  r.docClient = [d.documentElement.clientWidth, d.documentElement.clientHeight];
+  r.docScroll = [d.documentElement.scrollWidth, d.documentElement.scrollHeight];
+  r.bodyScroll = [d.body.scrollWidth, d.body.scrollHeight];
+  var tabs = [].slice.call(d.querySelectorAll('.tab'));
+  r.tabCount = tabs.length;
+  r.tabs = tabs.map(function(t){ var b = t.getBoundingClientRect();
+    return { x: Math.round(b.left), y: Math.round(b.top), w: Math.round(b.width), h: Math.round(b.height) }; });
+  r.svgSize = tabs.map(function(t){ var s = t.querySelector('svg'); if (!s) return null;
+    var b = s.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; });
+  var panel = q('.kid-panel');
+  if (panel){ var pb = panel.getBoundingClientRect();
+    r.panel = { y: Math.round(pb.top), h: Math.round(pb.height), scrollH: panel.scrollHeight, clientH: panel.clientHeight }; }
+  var cl = q('.checklist');
+  if (cl){ r.checklist = { h: Math.round(cl.getBoundingClientRect().height), scrollH: cl.scrollHeight, clientH: cl.clientHeight }; }
+  var items = [].slice.call(d.querySelectorAll('.check-item'));
+  r.items = items.map(function(e){ var b = e.getBoundingClientRect();
+    return { y: Math.round(b.top), x: Math.round(b.left), w: Math.round(b.width), h: Math.round(b.height) }; });
+  r.clock = q('#clock') ? q('#clock').textContent : null;
+  r.clockTag = q('#clockTag') ? q('#clockTag').textContent : null;
+  r.date = q('#dateText') ? q('#dateText').textContent : null;
+  r.greet = q('#greet') ? q('#greet').textContent : null;
+  r.countdown = q('#countdown') ? q('#countdown').textContent : null;
+  r.note = q('#cdNote') ? q('#cdNote').textContent : null;
+  r.countLabel = q('#countLabel') ? q('#countLabel').textContent : null;
+  r.badge = [].slice.call(d.querySelectorAll('.tab-badge')).map(function(b){ return b.textContent; });
+  r.header = q('.topbar') ? (function(){ var b = q('.topbar').getBoundingClientRect(); return [Math.round(b.height)]; })() : null;
+  r.commonH = q('.common') ? Math.round(q('.common').getBoundingClientRect().height) : null;
+  r.tabsH = Math.round((q('.tabs') ? q('.tabs').getBoundingClientRect().height : 0));
+  return r;
+}
+function run(src, w, h, label){
+  return new Promise(function(res){
+    var f = document.createElement('iframe');
+    f.setAttribute('width', w); f.setAttribute('height', h);
+    f.style.width = w + 'px'; f.style.height = h + 'px';
+    f.src = src;
+    var box = document.createElement('div');
+    box.className = 'box';
+    var t = document.createElement('h3'); t.textContent = label; box.appendChild(t); box.appendChild(f);
+    document.body.appendChild(box);
+    f.onload = function(){
+      setTimeout(function(){
+        try { out.push(meas(f, label)); } catch(e){ out.push({label: label, error: String(e)}); }
+        document.getElementById('out').textContent = 'RESULT_JSON:' + JSON.stringify(out);
+        res();
+      }, 900);
+    };
+  });
+}
+(function(){
+  var jobs = [
+    ['candidate.html', 1024, 768, 'cand-1024x768'],
+    ['candidate.html', 1280, 800, 'cand-1280x800'],
+    ['tz-utc.html', 1024, 768, 'utcsim-1024x768'],
+    ['tz-utc.html', 1280, 800, 'utcsim-1280x800']
+  ];
+  var p = Promise.resolve();
+  jobs.forEach(function(j){ p = p.then(function(){ return run(j[0], j[1], j[2], j[3]); }); });
+  p.then(function(){ document.getElementById('out').textContent = 'RESULT_JSON:' + JSON.stringify(out); });
+})();
+</script>
+</body>
+</html>
