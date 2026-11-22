@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>대시보드 화면 크기 검증</title>
+<style>
+  html,body{margin:0;background:#dfe4ee}
+  #frame{display:block;border:0;background:#fff;margin:0}
+</style>
+</head>
+<body>
+<iframe id="frame" src="./index.html" title="dashboard"></iframe>
+<script>
+  var p = new URLSearchParams(location.search);
+  var w = Number(p.get('w')) || 1024;
+  var h = Number(p.get('h')) || 768;
+  var f = document.getElementById('frame');
+  f.width = w; f.height = h;
+  document.title = '검증 ' + w + 'x' + h;
+</script>
+</body>
+</html>
