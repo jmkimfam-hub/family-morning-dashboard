@@ -93,6 +93,8 @@ body{
   padding:8px 18px;border-radius:22px;
 }
 .tb-actions .pill + .pill{margin-left:8px}
+.tb-actions .pill.sound{padding:8px 10px;font-size:15px;line-height:1;min-width:44px;justify-content:center;letter-spacing:0}
+.tb-actions .pill.sound.off{background:#f3f6fd;opacity:.75}
 .tb-date{flex:1 1 0;min-width:0;padding-left:4px}
 .today{font-size:15px;font-size:clamp(14px,1.9vh,17px);font-weight:800;letter-spacing:.2px}
 .today .dow{color:var(--sky-deep)}
@@ -172,19 +174,24 @@ body{
 .phrase-text::after{content:"”";font-size:1.8em;color:#ffc2d8;line-height:0;vertical-align:-.2em;margin-left:2px}
 .phrase-foot{display:flex;justify-content:flex-end;margin-top:4px}
 
-/* 사자성어 — 한자·독음은 위, 뜻·예문은 아래로 충분히 띄운다 */
+/* 사자성어 — 한자·독음은 위, 뜻·예문은 카드 가운데~아래를 넉넉히 채운다 */
 .idiom{gap:0}
 .idiom-head{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
-.idiom-char{flex:0 0 auto;margin-top:6px;padding-bottom:2px}
+.idiom-char{flex:0 0 auto;margin-top:5px;padding-bottom:0}
 .idiom-hanja{
   font-size:21px;font-size:clamp(18px,2.5vh,23px);font-weight:900;letter-spacing:2px;margin-top:0;line-height:1.15;
   color:#5b63a8;font-family:"Noto Serif KR","Nanum Myeongjo",serif;
 }
 .idiom-reading{font-size:11.5px;font-weight:900;color:var(--lemon-deep);letter-spacing:2px;margin-top:2px}
-.idiom-body{flex:0 0 auto;min-height:0;margin-top:auto;margin-bottom:0;padding-top:8px;overflow:hidden}
-.idiom-meaning{font-size:11.5px;font-weight:800;line-height:1.35;margin:0;color:#4c5680;word-break:keep-all}
-.idiom-example{font-size:10.5px;font-weight:700;line-height:1.3;margin:4px 0 0;color:var(--ink-3);word-break:keep-all}
+.idiom-body{
+  flex:1 1 auto;min-height:0;margin:12px 0 0;padding:0;
+  display:flex;flex-direction:column;justify-content:center;overflow:hidden;
+}
+.idiom-meaning{font-size:15px;font-size:clamp(14px,1.95vh,15.5px);font-weight:800;line-height:1.55;margin:0;color:#4c5680;word-break:keep-all}
+.idiom-example{font-size:13px;font-size:clamp(12.5px,1.65vh,13px);font-weight:700;line-height:1.5;margin:9px 0 0;color:var(--ink-3);word-break:keep-all}
 .idiom-example b{color:#98a2c4}
+.idiom.long .idiom-meaning{font-size:14px;line-height:1.5}
+.idiom.long .idiom-example{font-size:12.5px;line-height:1.45;margin-top:6px}
 
 /* ---------- 하단 아이 영역 (위: 가로 탭 / 아래: 선택한 아이 패널) ---------- */
 .kid-zone{
@@ -476,8 +483,10 @@ body{
   .rain-item{padding:2px 7px;font-size:10px}
   .wx-tip{padding:2px 8px;margin-top:2px;font-size:11px}
   .wx-tip.wear{padding:2px 8px;margin-top:2px;font-size:10.5px}
-  .idiom-char{margin-top:3px}
-  .idiom-body{padding-top:4px}
+  .idiom-char{margin-top:2px}
+  .idiom-body{margin-top:6px;padding:0}
+  .idiom-meaning{font-size:13.5px;line-height:1.45}
+  .idiom-example{font-size:11.5px;line-height:1.4;margin-top:5px}
   .wx-foot{padding-top:1px}
 }
 
@@ -504,6 +513,7 @@ body{
       <span class="clock-tag" id="clockTag">오전</span>
     </div>
     <div class="tb-actions">
+      <button class="pill sound" id="soundBtn" type="button" title="축하 소리 끄기 (M)" aria-pressed="true">🔊</button>
       <button class="pill" id="fsBtn" type="button" title="전체화면 (F)"><span>⛶</span> 전체화면</button>
       <button class="pill" id="setBtn" type="button" title="설정 (S)"><span>⚙️</span> 설정</button>
     </div>
@@ -851,7 +861,8 @@ const KEY = {
   settings:'wdash.settings.v2',
   settingsOld:'wdash.settings.v1',
   weather:'wdash.weather.v1',
-  phrase:'wdash.phrase.v1'
+  phrase:'wdash.phrase.v1',
+  sound:'wdash.sound.v1'
 };
 
 /* ============================================================
@@ -1330,13 +1341,79 @@ function toggleTask(kidId, idx){
     const key = kidId + '|' + dayKey();
     if (!celebrated[key]){
       celebrated[key] = true;
-      celebrate();
+      celebrate(kidId);
       toast(k.name + ' 준비 끝! 오늘도 화이팅 🎉');
     }
   }
 }
 
-function celebrate(){
+/* ---------- 축하 소리 (Web Audio, 외부 파일 없음) ----------
+   체크는 사람이 누르는 순간이라 이때 AudioContext를 만들거나 resume하면
+   모바일·구형 태블릿에서도 재생이 허용된다. 오디오를 못 쓰는 브라우저에서는
+   조용히 넘어간다. 아이마다 다른 4~5음을 짧은 팡파레로 사용한다. */
+const KID_FANFARE = {
+  seoyun:   { notes:[523.25, 659.25, 783.99, 1046.50],          type:'sine',     step:0.20, tone:0.45, tail:0.60, gain:0.20 }, /* C5-E5-G5-C6 맑고 차분 */
+  chaeyun:  { notes:[587.33, 739.99, 880.00, 1174.66],          type:'triangle', step:0.16, tone:0.26, tail:0.55, gain:0.22 }, /* D5-F#5-A5-D6 통통 튀는 */
+  seungyun: { notes:[392.00, 523.25, 659.25, 783.99, 1046.50],  type:'triangle', step:0.13, tone:0.18, tail:0.55, gain:0.22 }  /* G4-C5-E5-G5-C6 레벨업 */
+};
+let audioCtx = null;
+
+function soundEnabled(){ return store.get(KEY.sound) !== 'off'; }
+
+function getAudioCtx(){
+  if (audioCtx) return audioCtx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  try { audioCtx = new AC(); } catch(e){ audioCtx = null; }
+  return audioCtx;
+}
+
+function playFanfare(kidId){
+  if (!soundEnabled()) return;
+  const ac = getAudioCtx();
+  if (!ac) return;
+  const seq = KID_FANFARE[kidId] || KID_FANFARE.seoyun;
+  try {
+    if (ac.state === 'suspended' && ac.resume) ac.resume();
+    const t0 = ac.currentTime + 0.04;
+    seq.notes.forEach(function(freq, i){
+      const start = t0 + i * seq.step;
+      const dur = (i === seq.notes.length - 1) ? seq.tail : seq.tone;
+      const osc = ac.createOscillator();
+      const g = ac.createGain();
+      osc.type = seq.type;
+      osc.frequency.setValueAtTime(freq, start);
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(seq.gain, start + 0.025);
+      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      osc.connect(g);
+      g.connect(ac.destination);
+      osc.start(start);
+      osc.stop(start + dur + 0.03);
+    });
+  } catch(e){ /* 소리를 못 내도 축하는 그대로 */ }
+}
+
+function renderSoundBtn(){
+  const b = $('soundBtn');
+  if (!b) return;
+  const on = soundEnabled();
+  b.textContent = on ? '🔊' : '🔇';
+  b.title = on ? '축하 소리 끄기 (M)' : '축하 소리 켜기 (M)';
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.classList.toggle('off', !on);
+}
+
+function toggleSound(){
+  const next = !soundEnabled();
+  store.set(KEY.sound, next ? 'on' : 'off');
+  renderSoundBtn();
+  if (next) playFanfare(state.active);
+  toast(next ? '축하 소리를 켰어요 🔊' : '축하 소리를 껐어요 🔇');
+}
+
+function celebrate(kidId){
+  playFanfare(kidId);
   const host = document.createElement('div');
   host.className = 'confetti';
   const em = ['🎉', '✨', '⭐', '🎈', '💛', '🌟', '🍀'];
@@ -1382,6 +1459,9 @@ function renderIdiom(){
   if ($('idiomReading')) $('idiomReading').textContent = it.r;
   if ($('idiomMeaning')) $('idiomMeaning').textContent = it.m;
   if ($('idiomExample')) $('idiomExample').innerHTML = '<b>예:</b> ' + esc(it.e);
+  /* 뜻·예문이 긴 날은 한 단계 작게 해서 카드 밖으로 넘치지 않게 한다 */
+  const card = $('idiomCard');
+  if (card) card.classList.toggle('long', it.m.length > 32 || it.e.length > 24);
 }
 
 /* ============================================================
@@ -1435,33 +1515,34 @@ function meanHour(hourly, day, hours, key){
 }
 
 /* ---------- 오늘의 옷차림 ----------
-   아이가 집을 나서는 등교 시간(7~9시)의 기온을 기준으로 하고,
-   체감온도가 그보다 2도 이상 낮으면 체감을 기준으로 바꾼다.
+   부산 생활 체감에 맞춰 과한 방한구 없이 한 단계 가볍게 안내한다.
+   기준 기온은 등교 시간(7~9시) 평균 기온과 지금 기온의 중간값 —
+   아침 최저에만 맞추면 하루 종일 과하게 따뜻한 옷을 권하게 되기 때문이다.
+   바람으로 체감이 2도 이상 낮은 날은 그 차이의 절반(최대 2도)만 낮춰 반영한다.
    하루 최고-최저 차이가 10도 이상이고 낮 최고가 15도 이상이면
    벗었다 입을 겉옷을 덧붙인다. */
 const WEAR_BANDS = [
-  { max:4,  text:'🧥 두꺼운 패딩·목도리·장갑 꼭 챙겨요' },
-  { max:8,  text:'🧥 패딩이나 두꺼운 코트, 니트 따뜻하게!' },
-  { max:11, text:'🧥 자켓·경량패딩에 따뜻한 겉옷 입어요' },
-  { max:16, text:'🧶 가디건·맨투맨·바람막이가 딱 좋아요' },
-  { max:19, text:'👕 긴팔 티나 얇은 겉옷 챙겨 입어요' },
-  { max:22, text:'👕 얇은 긴팔이나 반팔+가벼운 겉옷!' },
-  { max:27, text:'👕 시원한 반팔이나 얇은 셔츠 입어요' },
+  { max:0,   text:'🧥 두꺼운 패딩이나 따뜻한 외투 챙겨요' },
+  { max:6,   text:'🧥 조금 두꺼운 외투나 경량패딩이 좋아요' },
+  { max:11,  text:'🧥 자켓이나 코트, 니트 겹쳐 입어요' },
+  { max:16,  text:'🧶 가디건·맨투맨·바람막이가 딱 좋아요' },
+  { max:19,  text:'👕 긴팔 티나 얇은 겉옷 챙겨 입어요' },
+  { max:22,  text:'👕 얇은 긴팔이나 반팔+가벼운 겉옷!' },
+  { max:27,  text:'👕 시원한 반팔이나 얇은 셔츠 입어요' },
   { max:999, text:'☀️ 아주 더워요! 시원한 반팔·물 많이 마시기' }
 ];
 
 function wearTipText(hourly, daily, cur){
   const today = (daily && daily.time && daily.time[0]) ? daily.time[0] : null;
   const goT = meanHour(hourly, today, [7, 8, 9], 'temperature_2m');
-  const goF = meanHour(hourly, today, [7, 8, 9], 'apparent_temperature');
+  const curT = (cur && typeof cur.temperature_2m === 'number') ? cur.temperature_2m : null;
+  const curF = (cur && typeof cur.apparent_temperature === 'number') ? cur.apparent_temperature : null;
   let base = null;
-  if (goT != null) base = goT;
-  if (goF != null && (base == null || goF < base - 2)) base = goF;
-  if (base == null && cur){
-    if (typeof cur.apparent_temperature === 'number') base = cur.apparent_temperature;
-    else if (typeof cur.temperature_2m === 'number') base = cur.temperature_2m;
-  }
+  if (goT != null && curT != null) base = (goT + curT) / 2;
+  else if (goT != null) base = goT;
+  else if (curT != null) base = curT;
   if (base == null) return null;
+  if (curT != null && curF != null && curF < curT - 2) base -= Math.min(2, (curT - curF) / 2);
   const t = Math.round(base);
   let band = WEAR_BANDS[WEAR_BANDS.length - 1];
   for (let i = 0; i < WEAR_BANDS.length; i++){
@@ -1767,6 +1848,9 @@ function bindEvents(){
   const sBtn = $('setBtn');
   if (sBtn) sBtn.addEventListener('click', openSettings);
 
+  const sndBtn = $('soundBtn');
+  if (sndBtn) sndBtn.addEventListener('click', toggleSound);
+
   const modal = $('modal');
   if (modal){
     modal.addEventListener('click', function(e){
@@ -1805,6 +1889,8 @@ function bindEvents(){
       toggleFullscreen();
     } else if (e.key === 's' || e.key === 'S'){
       openSettings();
+    } else if (e.key === 'm' || e.key === 'M'){
+      toggleSound();
     } else if (e.key === 'r' || e.key === 'R'){
       loadWeather(true);
     }
@@ -1844,6 +1930,7 @@ function init(){
   renderKid();
   renderPhrase();
   renderIdiom();
+  renderSoundBtn();
   updateClock(kstNow());
   updateFoot(kstNow());
   bindEvents();
