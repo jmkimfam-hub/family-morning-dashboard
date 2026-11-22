@@ -500,7 +500,7 @@ if (SCENE === 'layout'){
     var e3 = ['숙제·복습 마무리하기', '내일 가방·옷 챙겨두기', '양치하고 잘 준비하기'];
     settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50',
       morning: Q.get('tasks') === '12' ? m12 : m12.slice(0, 6),
-      evening: e3 } });
+      evening: Q.get('evening') === '1' ? e3.slice(0, 1) : e3 } });
   }
   var pairs = [
     ['wdash.stamps.v1', JSON.stringify(stampSeed2)],
