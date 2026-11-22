@@ -401,7 +401,7 @@ if (SCENE === 'layout'){
   var t6 = [true, true, true, true, true, true];
   var histD = {};
   var slotsD = [];
-  for (var di = 1; di <= 21; di++){
+  for (var di = 21; di >= 1; di--){
     var kk = keyOff(-di);
     var all = (di <= 3) ? true : (di % 5 !== 0);
     histD[kk] = { seoyun: { done: all ? 6 : 4, total: 6, allDone: all, tasks: t6 } };
@@ -409,13 +409,22 @@ if (SCENE === 'layout'){
   }
   /* 오늘은 4/6 (도장 없음) */
   histD[keyOff(0)] = { seoyun: { done: 4, total: 6, allDone: false, tasks: [true, true, true, true, false, false] } };
+  if (view === 'full'){
+    slotsD = [];
+    histD = {};
+    for (var fi = 9; fi >= 1; fi--){
+      var fk = keyOff(-fi);
+      slotsD.push({ date: fk });
+      histD[fk] = { seoyun: { done: 6, total: 6, allDone: true, tasks: t6 } };
+    }
+  }
   var stampSeed2 = {
     seoyun: { slots: slotsD, completedBoards: 2 },
     chaeyun: { slots: [keyOff(-1), keyOff(-2), keyOff(-4), keyOff(-5), keyOff(-7), keyOff(-8), keyOff(-9)].map(function(x){ return { date: x }; }), completedBoards: 0 },
     seungyun: { slots: [{ date: keyOff(-2) }, { date: keyOff(-6) }], completedBoards: 1 }
   };
   var checksSeed2 = { date: keyOff(0), data: {
-    seoyun: [true, true, true, true, false, false],
+    seoyun: view === 'full' ? [true, true, true, true, true, true] : [true, true, true, true, false, false],
     chaeyun: [true, true, true, true, true, true],
     seungyun: [true, true, true, true, true, false]
   } };
@@ -437,7 +446,7 @@ if (SCENE === 'layout'){
       d.getElementById('setBtn').click();
     } else if (view === 'hist'){
       d.getElementById('histBtn').click();
-    } else if (view === 'stamp'){
+    } else if (view === 'stamp' || view === 'full'){
       d.getElementById('histBtn').click();
       setTimeout(function(){ d.querySelector('[data-hview="stamp"]').click(); }, 250);
     }
