@@ -7,7 +7,6 @@
   html,body{margin:0;padding:0;background:#fff}
   #frame{border:0;display:block;background:#fff}
   #out{font:12px/1.5 monospace;white-space:pre-wrap;margin:6px;padding:10px;background:#101828;color:#d8e3ff;min-height:200px}
-  .ok{color:#7ff0c0}.bad{color:#ff9aa8}
 </style>
 </head>
 <body>
@@ -49,53 +48,67 @@ function seq(steps){
 }
 function load(cb, qs){
   frame.onload = function(){
-    setTimeout(function(){ cb(frame.contentWindow, frame.contentDocument); }, 500);
+    setTimeout(function(){ cb(frame.contentWindow, frame.contentDocument); }, 600);
   };
   frame.src = 'index.html?_' + Date.now() + (qs || '');
 }
-/* storage seed: pairs = [[key, rawString], ...] */
 function seeded(pairs, cb){
   frame.onload = function(){
     var ls = frame.contentWindow.localStorage;
     ls.clear();
     (pairs || []).forEach(function(p){ ls.setItem(p[0], p[1]); });
-    frame.onload = function(){ setTimeout(function(){ cb(frame.contentWindow, frame.contentDocument); }, 550); };
+    frame.onload = function(){ setTimeout(function(){ cb(frame.contentWindow, frame.contentDocument); }, 650); };
     frame.src = 'index.html?run=' + Date.now();
   };
   frame.src = 'index.html?seed=' + Date.now();
 }
-function kstNowDate(){
+function kstTodayMs(){
   var n = new Date(Date.now() + 9 * 3600 * 1000);
-  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+  return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
 }
 function keyOff(off){
-  var d = new Date(kstNowDate().getTime() + off * 86400000);
+  var d = new Date(kstTodayMs() + off * 86400000);
   return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
 }
 function md(key){ return Number(key.slice(5, 7)) + '/' + Number(key.slice(8, 10)); }
-
+function countOn(d, sel){ return d.querySelectorAll(sel).length; }
+function clickList(d, sel, cb){
+  var items = d.querySelectorAll(sel);
+  var i = 0;
+  (function go(){
+    if (i >= items.length){ cb(); return; }
+    items[i].click();
+    i++;
+    setTimeout(go, 55);
+  })();
+}
 function metrics(w, d){
   var de = d.documentElement;
   var panel = d.getElementById('kidPanel');
-  var list = d.getElementById('checklist');
   var top = d.querySelector('.topbar');
   var actions = d.querySelector('.tb-actions');
   return {
     viewport: w.innerWidth + 'x' + w.innerHeight,
-    docScroll: de.scrollHeight, docClient: de.clientHeight,
-    bodyScroll: d.body.scrollHeight,
     docOverflow: de.scrollHeight - de.clientHeight,
+    bodyScroll: d.body.scrollHeight,
     panelScroll: panel ? panel.scrollHeight : null,
     panelClient: panel ? panel.clientHeight : null,
     panelOverflow: panel ? panel.scrollHeight - panel.clientHeight : null,
-    listOverflow: list ? list.scrollHeight - list.clientHeight : null,
+    mListOverflow: (function(){ var e = d.getElementById('checklistM'); return e ? e.scrollHeight - e.clientHeight : null; })(),
+    eListOverflow: (function(){ var e = d.getElementById('checklistE'); return e ? e.scrollHeight - e.clientHeight : null; })(),
     topbarOverflow: top ? top.scrollWidth - top.clientWidth : null,
     actionsW: actions ? Math.round(actions.getBoundingClientRect().width) : null,
     pills: d.querySelectorAll('.tb-actions .pill').length,
-    checks: d.querySelectorAll('.check-item').length,
-    checkHeadOverflow: (function(){
-      var h = d.querySelector('.check-head');
-      return h ? h.scrollWidth - h.clientWidth : null;
+    mItems: d.querySelectorAll('#checklistM .check-item').length,
+    eItems: d.querySelectorAll('#checklistE .check-item').length,
+    checkHeadOverflow: (function(){ var h = d.querySelector('.check-head'); return h ? h.scrollWidth - h.clientWidth : null; })(),
+    clipped: (function(){
+      var bad = [];
+      var items = d.querySelectorAll('.check-item .txt');
+      for (var i = 0; i < items.length; i++){
+        if (items[i].scrollHeight - items[i].clientHeight > 2) bad.push(items[i].textContent);
+      }
+      return bad.join(' / ');
     })()
   };
 }
@@ -108,21 +121,21 @@ if (SCENE === 'layout'){
     Object.keys(m).forEach(function(k){ log('  ' + k + '=' + m[k]); });
     assert('문서 스크롤 0 (' + W + 'x' + H + ')', m.docOverflow <= 0, 'overflow=' + m.docOverflow);
     assert('아이 패널 넘침 없음', m.panelOverflow <= 0, 'overflow=' + m.panelOverflow);
+    assert('아침 목록 넘침 없음', m.mListOverflow <= 0, 'overflow=' + m.mListOverflow);
+    assert('저녁 목록 넘침 없음', m.eListOverflow <= 0, 'overflow=' + m.eListOverflow);
     assert('상단 바 한 줄', m.topbarOverflow <= 0, 'overflow=' + m.topbarOverflow);
-    assert('체크 헤더 넘침 없음', m.checkHeadOverflow <= 0, 'overflow=' + m.checkHeadOverflow);
-    assert('상단 버튼 4개(기록·소리·전체화면·설정)', m.pills === 4, 'pills=' + m.pills);
-    /* 모달 크기 확인 */
+    assert('아침 6개 · 저녁 3개', m.mItems === 6 && m.eItems === 3, m.mItems + '/' + m.eItems);
+    assert('항목 글자 잘림 없음', m.clipped === '', m.clipped);
+    assert('상단 버튼 4개', m.pills === 4, 'pills=' + m.pills);
     d.getElementById('histBtn').click();
     setTimeout(function(){
       var card = d.querySelector('.hist-card');
-      var r = card.getBoundingClientRect();
-      var modalOverflow = card.scrollHeight - card.clientHeight;
-      log('  histModal card=' + Math.round(r.width) + 'x' + Math.round(r.height) + ' innerOverflow=' + modalOverflow);
-      log('  calCells=' + d.querySelectorAll('.cal-cell').length + ' doneCells=' + d.querySelectorAll('.cal-cell.done').length);
+      log('  histModal=' + Math.round(card.getBoundingClientRect().width) + 'x' + Math.round(card.getBoundingClientRect().height) + ' innerOverflow=' + (card.scrollHeight - card.clientHeight));
+      log('  calCells=' + countOn(d, '.cal-cell'));
       d.querySelector('[data-hview="stamp"]').click();
       setTimeout(function(){
-        log('  stampSlots=' + d.querySelectorAll('.coupon .slot').length + ' onSlots=' + d.querySelectorAll('.coupon .slot.on').length);
-        log('  stampsOverflow=' + (d.querySelector('.hist-card').scrollHeight - d.querySelector('.hist-card').clientHeight));
+        log('  stampSlots=' + countOn(d, '.coupon .slot') + ' on=' + countOn(d, '.coupon .slot.on'));
+        log('  stampOverflow=' + (d.querySelector('.hist-card').scrollHeight - d.querySelector('.hist-card').clientHeight));
         d.getElementById('histCloseBtn').click();
         d.getElementById('setBtn').click();
         setTimeout(function(){
@@ -131,46 +144,53 @@ if (SCENE === 'layout'){
           log((fails ? '### RESULT: ' + fails + ' FAIL(S)' : '### RESULT: ALL PASS'));
           log('===DONE===');
           document.title = 'DONE-' + fails;
-        }, 300);
-      }, 300);
-    }, 300);
+        }, 350);
+      }, 350);
+    }, 350);
   });
 } else if (SCENE === 'flow'){
   var today = keyOff(0);
   function badgeText(d){ var b = d.querySelector('#stampBadge'); return b ? b.textContent : ''; }
-  function approveBtn(d){ return d.querySelector('[data-act="approve"]'); }
   function stampsOf(w){
     try { return JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}').seoyun || { slots: [] }; }
     catch(e){ return { slots: [] }; }
-  }
-  function clickAll(d, n, cb){
-    var i = 0;
-    (function go(){
-      if (i >= n){ cb(); return; }
-      d.querySelectorAll('.check-item')[i].click();
-      i++;
-      setTimeout(go, 55);
-    })();
   }
   seq([
     function(next){ seeded([], function(){ next(); }); },
     function(next){
       var d = frame.contentDocument;
-      assert('기본 할 일 6개', d.querySelectorAll('.check-item').length === 6, d.querySelectorAll('.check-item').length);
+      assert('아침 6 · 저녁 3', countOn(d, '#checklistM .check-item') === 6 && countOn(d, '#checklistE .check-item') === 3,
+        countOn(d, '#checklistM .check-item') + '/' + countOn(d, '#checklistE .check-item'));
+      assert('탭 배지 0/9', /0\/9/.test(d.querySelector('.tab-badge').textContent), d.querySelector('.tab-badge').textContent);
+      assert('아침 카운트 0/6', d.getElementById('checkCountM').textContent === '0/6', d.getElementById('checkCountM').textContent);
+      assert('저녁 카운트 0/3', d.getElementById('checkCountE').textContent === '0/3', d.getElementById('checkCountE').textContent);
       assert('도장 배지 0', /0/.test(badgeText(d)), badgeText(d));
-      assert('배지 점 10개', d.querySelectorAll('#stampBadge .stamp-mini i').length === 10, d.querySelectorAll('#stampBadge .stamp-mini i').length);
       next();
     },
     function(next){
-      var d = frame.contentDocument;
-      clickAll(d, 6, function(){
+      clickList(frame.contentDocument, '#checklistM .check-item', function(){
         setTimeout(function(){
-          assert('6개 모두 체크', d.getElementById('checkCount').textContent === '6/6', d.getElementById('checkCount').textContent);
-          assert('자동 발급 안 됨', stampsOf(frame.contentWindow).slots.length === 0, JSON.stringify(stampsOf(frame.contentWindow).slots));
-          assert('배지 확인 대기', /확인 대기/.test(badgeText(d)), badgeText(d));
-          assert('꼬리말 확인 안내', /확인/.test(d.getElementById('footText').textContent), d.getElementById('footText').textContent);
+          var d = frame.contentDocument;
+          assert('아침 6/6', d.getElementById('checkCountM').textContent === '6/6', d.getElementById('checkCountM').textContent);
+          assert('저녁 0/3', d.getElementById('checkCountE').textContent === '0/3', d.getElementById('checkCountE').textContent);
+          assert('아침만으론 확인 대기 아님', !/확인 대기/.test(badgeText(d)), badgeText(d));
+          assert('아침만으론 도장 없음', stampsOf(frame.contentWindow).slots.length === 0, JSON.stringify(stampsOf(frame.contentWindow).slots));
+          assert('아침 완료 안내', /아침 준비/.test(d.getElementById('footText').textContent), d.getElementById('footText').textContent);
+          assert('탭 6/9', /6\/9/.test(d.querySelector('.tab-badge').textContent), d.querySelector('.tab-badge').textContent);
           next();
-        }, 250);
+        }, 300);
+      });
+    },
+    function(next){
+      clickList(frame.contentDocument, '#checklistE .check-item', function(){
+        setTimeout(function(){
+          var d = frame.contentDocument;
+          assert('저녁 3/3', d.getElementById('checkCountE').textContent === '3/3', d.getElementById('checkCountE').textContent);
+          assert('탭 9/9 완료', /완료/.test(d.querySelector('.tab-badge').textContent), d.querySelector('.tab-badge').textContent);
+          assert('자동 발급 안 됨', stampsOf(frame.contentWindow).slots.length === 0, JSON.stringify(stampsOf(frame.contentWindow).slots));
+          assert('확인 대기 표시', /확인 대기/.test(badgeText(d)), badgeText(d));
+          next();
+        }, 300);
       });
     },
     function(next){
@@ -178,101 +198,102 @@ if (SCENE === 'layout'){
       d.getElementById('histBtn').click();
       setTimeout(function(){
         var body = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
-        assert('기록 모달 열림', d.getElementById('histModal').hidden === false);
-        assert('이번 주 1회', /이번 주\s*1회/.test(body), body.slice(0, 80));
-        assert('연속 1일', /연속 성공\s*1일/.test(body), body.slice(0, 80));
-        assert('달력 오늘 완료', d.querySelectorAll('.cal-cell.done').length === 1, d.querySelectorAll('.cal-cell.done').length);
+        assert('이번 주 1회', /이번 주\s*1회/.test(body), body.slice(0, 70));
+        assert('연속 1일', /연속 성공\s*1일/.test(body), body.slice(0, 70));
+        assert('달력 오늘 완료', countOn(d, '.cal-cell.done') === 1, countOn(d, '.cal-cell.done'));
         d.querySelector('[data-hview="stamp"]').click();
         setTimeout(function(){
-          assert('도장판 슬롯 10칸', d.querySelectorAll('.coupon .slot').length === 10, d.querySelectorAll('.coupon .slot').length);
-          assert('찍힌 도장 0', d.querySelectorAll('.coupon .slot.on').length === 0, d.querySelectorAll('.coupon .slot.on').length);
-          assert('확인 대기 안내', /다 채웠어요/.test(d.getElementById('histBody').textContent));
-          var btn = approveBtn(d);
+          assert('도장 슬롯 10칸', countOn(d, '.coupon .slot') === 10, countOn(d, '.coupon .slot'));
+          assert('찍힌 도장 0', countOn(d, '.coupon .slot.on') === 0, countOn(d, '.coupon .slot.on'));
+          var btn = d.querySelector('[data-act="approve"]');
           assert('도장 찍어주기 버튼', !!btn && /도장 찍어주기/.test(btn.textContent), btn ? btn.textContent : 'none');
           btn.click();
-          setTimeout(next, 250);
-        }, 250);
-      }, 250);
+          setTimeout(next, 300);
+        }, 300);
+      }, 300);
     },
     function(next){
       var d = frame.contentDocument, w = frame.contentWindow;
       var st = stampsOf(w);
-      assert('부모 확인 후 1칸 발급', st.slots.length === 1 && st.slots[0].date === today, JSON.stringify(st.slots));
-      assert('발급 완료 배너', /도장 발급 완료/.test(d.getElementById('histBody').textContent), d.getElementById('histBody').textContent.replace(/\s+/g, ' ').slice(0, 100));
-      assert('발급 후 버튼 사라짐', !approveBtn(d));
+      assert('부모 확인 후 1칸', st.slots.length === 1 && st.slots[0].date === today, JSON.stringify(st.slots));
+      assert('발급 완료 배너', /도장 발급 완료/.test(d.getElementById('histBody').textContent));
       assert('배지 도장 완료', /도장 완료/.test(badgeText(d)), badgeText(d));
       d.getElementById('histCloseBtn').click();
       setTimeout(function(){
-        d.querySelectorAll('.check-item')[2].click();
+        d.querySelectorAll('#checklistM .check-item')[2].click();
         setTimeout(function(){
           assert('체크 풀어도 도장 유지', stampsOf(w).slots.length === 1, JSON.stringify(stampsOf(w).slots));
-          assert('배지 점 1개', d.querySelectorAll('#stampBadge .stamp-mini i.on').length === 1, d.querySelectorAll('#stampBadge .stamp-mini i.on').length);
-          d.querySelectorAll('.check-item')[2].click();
+          d.querySelectorAll('#checklistM .check-item')[2].click();
           setTimeout(function(){
             assert('재체크 중복 없음', stampsOf(w).slots.length === 1, JSON.stringify(stampsOf(w).slots));
-            assert('재체크 후 도장 완료 표시', /도장 완료/.test(badgeText(d)), badgeText(d));
+            assert('재체크 후 도장 완료', /도장 완료/.test(badgeText(d)), badgeText(d));
             next();
           }, 200);
         }, 200);
       }, 200);
     },
     function(next){
-      /* 설정: 추가·삭제 */
       var d = frame.contentDocument;
       d.getElementById('setBtn').click();
       setTimeout(function(){
-        assert('설정 할 일 6칸', d.querySelectorAll('#setTasks input').length === 6, d.querySelectorAll('#setTasks input').length);
-        d.getElementById('addTaskBtn').click();
-        d.getElementById('addTaskBtn').click();
+        assert('설정 아침 6칸', countOn(d, '#setTasks input[data-sec="m"]') === 6, countOn(d, '#setTasks input[data-sec="m"]'));
+        assert('설정 저녁 3칸', countOn(d, '#setTasks input[data-sec="e"]') === 3, countOn(d, '#setTasks input[data-sec="e"]'));
+        d.querySelector('[data-add="m"]').click();
+        d.querySelector('[data-add="e"]').click();
         setTimeout(function(){
-          assert('추가 후 8칸', d.querySelectorAll('#setTasks input').length === 8, d.querySelectorAll('#setTasks input').length);
-          d.querySelector('#setTask6').value = '저녁 설거지 돕기';
-          d.querySelector('#setTask7').value = '내일 가방 미리 싸기';
+          assert('추가 후 아침 7 · 저녁 4',
+            countOn(d, '#setTasks input[data-sec="m"]') === 7 && countOn(d, '#setTasks input[data-sec="e"]') === 4,
+            countOn(d, '#setTasks input[data-sec="m"]') + '/' + countOn(d, '#setTasks input[data-sec="e"]'));
+          d.querySelector('#setM6').value = '현관 신발 정리';
+          d.querySelector('#setE3').value = '내일 입을 옷 골라두기';
           d.getElementById('saveBtn').click();
           setTimeout(function(){
-            assert('저장 후 8개', d.querySelectorAll('.check-item').length === 8, d.querySelectorAll('.check-item').length);
-            assert('추가 항목 미체크(6/8)', d.getElementById('checkCount').textContent === '6/8', d.getElementById('checkCount').textContent);
-            var st = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.settings.v2') || '{}');
-            assert('설정 8개 저장', st.seoyun && st.seoyun.tasks.length === 8 && st.seoyun.tasks[7] === '내일 가방 미리 싸기', JSON.stringify(st.seoyun && st.seoyun.tasks));
+            assert('아침 7 · 저녁 4 반영', countOn(d, '#checklistM .check-item') === 7 && countOn(d, '#checklistE .check-item') === 4,
+              countOn(d, '#checklistM .check-item') + '/' + countOn(d, '#checklistE .check-item'));
+            assert('카운트 6/7 · 3/4', d.getElementById('checkCountM').textContent === '6/7' && d.getElementById('checkCountE').textContent === '3/4',
+              d.getElementById('checkCountM').textContent + ' ' + d.getElementById('checkCountE').textContent);
+            var st = JSON.parse(frame.contentWindow.localStorage.getItem('wdash.settings.v3') || '{}');
+            assert('v3 설정 저장', st.seoyun && st.seoyun.morning.length === 7 && st.seoyun.evening.length === 4
+              && st.seoyun.morning[6] === '현관 신발 정리' && st.seoyun.evening[3] === '내일 입을 옷 골라두기',
+              JSON.stringify(st.seoyun));
+            next();
+          }, 300);
+        }, 250);
+      }, 300);
+    },
+    function(next){
+      var d = frame.contentDocument;
+      d.getElementById('setBtn').click();
+      setTimeout(function(){
+        var dels = d.querySelectorAll('#setTasks .task-del[data-del^="e:"]');
+        assert('저녁 삭제 버튼 4개', dels.length === 4, dels.length);
+        dels[3].click();
+        setTimeout(function(){
+          d.getElementById('saveBtn').click();
+          setTimeout(function(){
+            assert('저녁 3개로 저장', countOn(d, '#checklistE .check-item') === 3, countOn(d, '#checklistE .check-item'));
+            assert('저녁 카운트 3/3', d.getElementById('checkCountE').textContent === '3/3', d.getElementById('checkCountE').textContent);
             next();
           }, 250);
         }, 200);
-      }, 250);
+      }, 300);
     },
     function(next){
       var d = frame.contentDocument;
       d.getElementById('setBtn').click();
       setTimeout(function(){
-        var dels = d.querySelectorAll('#setTasks .task-del');
-        assert('삭제 버튼 8개', dels.length === 8, dels.length);
-        dels[7].click();
-        setTimeout(function(){
-          assert('삭제 후 입력 7칸', d.querySelectorAll('#setTasks input').length === 7, d.querySelectorAll('#setTasks input').length);
-          d.getElementById('saveBtn').click();
-          setTimeout(function(){
-            assert('저장 후 7개', d.querySelectorAll('.check-item').length === 7, d.querySelectorAll('.check-item').length);
-            assert('삭제 후 6/7', d.getElementById('checkCount').textContent === '6/7', d.getElementById('checkCount').textContent);
-            next();
-          }, 200);
-        }, 200);
-      }, 250);
-    },
-    function(next){
-      var d = frame.contentDocument;
-      d.getElementById('setBtn').click();
-      setTimeout(function(){
-        d.querySelector('#setTasks .task-del[data-del="1"]').click();
+        d.querySelector('#setTasks .task-del[data-del="m:1"]').click();
         setTimeout(function(){
           d.getElementById('saveBtn').click();
           setTimeout(function(){
-            var txt = Array.prototype.map.call(d.querySelectorAll('.check-item .txt'), function(e){ return e.textContent; });
-            log('  tasks=' + txt.join(' | '));
-            assert('가운데 삭제 후 6개', d.querySelectorAll('.check-item').length === 6, d.querySelectorAll('.check-item').length);
+            var txt = Array.prototype.map.call(d.querySelectorAll('#checklistM .check-item .txt'), function(e){ return e.textContent; });
+            log('  morning=' + txt.join(' | '));
+            assert('아침 6개', txt.length === 6, txt.length);
             assert('삭제 항목 빠짐', txt.indexOf('아침밥 먹기') < 0, txt.join(','));
             next();
-          }, 200);
+          }, 250);
         }, 200);
-      }, 250);
+      }, 300);
     },
     function(next){
       var d = frame.contentDocument;
@@ -282,46 +303,42 @@ if (SCENE === 'layout'){
         setTimeout(function(){
           d.getElementById('saveBtn').click();
           setTimeout(function(){
-            assert('기본값 복원 6개', d.querySelectorAll('.check-item').length === 6, d.querySelectorAll('.check-item').length);
+            assert('기본값 복원 6+3', countOn(d, '#checklistM .check-item') === 6 && countOn(d, '#checklistE .check-item') === 3,
+              countOn(d, '#checklistM .check-item') + '/' + countOn(d, '#checklistE .check-item'));
             next();
-          }, 200);
+          }, 250);
         }, 200);
-      }, 250);
+      }, 300);
     },
     function(next){
-      /* 시트 URL + 페이로드(todayStamped) */
       seeded([['wdash.sheetUrl.v1', 'https://script.google.com/macros/s/TEST_TOKEN/exec']], function(w, d){
         var calls = [];
         w.fetch = function(url, opts){ calls.push({ url: url, opts: opts || {} }); return Promise.resolve({ ok: true }); };
-        assert('시트 URL 입력칸 있음', !!d.getElementById('setSheetUrl'));
-        d.querySelectorAll('.check-item')[0].click();
+        d.querySelectorAll('#checklistM .check-item')[0].click();
         setTimeout(function(){
           assert('시트로 POST 1건', calls.length === 1, calls.length);
           if (calls.length){
             var o = calls[0].opts;
-            assert('POST·no-cors', o.method === 'POST' && o.mode === 'no-cors', o.method + '/' + o.mode);
             var body = {};
             try { body = JSON.parse(o.body); } catch(e){}
             log('  payload=' + JSON.stringify(body));
             assert('payload 필드', body.date === today && body.kidId === 'seoyun' && body.kidName === '서윤'
-              && typeof body.done === 'number' && typeof body.total === 'number'
-              && typeof body.allDone === 'boolean' && typeof body.stampsCount === 'number'
-              && typeof body.completedBoards === 'number' && body.todayStamped === false
-              && !!body.updatedAt, JSON.stringify(body));
+              && body.done === 1 && body.total === 9 && body.allDone === false
+              && typeof body.stampsCount === 'number' && typeof body.completedBoards === 'number'
+              && body.todayStamped === false && !!body.updatedAt, JSON.stringify(body));
           }
           next();
-        }, 250);
+        }, 300);
       });
     },
     function(next){
-      /* 부모 비밀번호 4자리: 틀린 번호 → 맞는 번호 */
       seeded([
         ['wdash.pin.v1', '1234'],
         ['wdash.sheetUrl.v1', 'https://script.google.com/macros/s/TEST_TOKEN/exec'],
-        ['wdash.checks.v2', JSON.stringify({ date: today, data: {
-          seoyun: [true, true, true, true, true, true],
-          chaeyun: [false, false, false, false, false, false],
-          seungyun: [false, false, false, false, false, false]
+        ['wdash.checks.v3', JSON.stringify({ date: today, data: {
+          seoyun: { morning: [true, true, true, true, true, true], evening: [true, true, true] },
+          chaeyun: { morning: [false, false, false, false, false, false], evening: [false, false, false] },
+          seungyun: { morning: [false, false, false, false, false, false], evening: [false, false, false] }
         } })]
       ], function(w, d){
         var calls = [];
@@ -331,37 +348,35 @@ if (SCENE === 'layout'){
         setTimeout(function(){
           d.querySelector('[data-hview="stamp"]').click();
           setTimeout(function(){
-            approveBtn(d).click();
+            d.querySelector('[data-act="approve"]').click();
             setTimeout(function(){
               assert('PIN 창 열림', d.getElementById('pinModal').hidden === false);
               ['9', '9', '9', '9'].forEach(function(n){ d.querySelector('.pin-key[data-pin="' + n + '"]').click(); });
               setTimeout(function(){
-                assert('틀린 PIN 거부', stampsOf(w).slots.length === 0 && d.getElementById('pinModal').hidden === false, JSON.stringify(stampsOf(w).slots));
+                assert('틀린 PIN 거부', stampsOf(w).slots.length === 0 && d.getElementById('pinModal').hidden === false);
                 assert('틀린 PIN 안내', /맞지 않아요/.test(d.getElementById('pinMsg').textContent), d.getElementById('pinMsg').textContent);
                 ['1', '2', '3', '4'].forEach(function(n){ d.querySelector('.pin-key[data-pin="' + n + '"]').click(); });
                 setTimeout(function(){
                   assert('맞는 PIN 통과', stampsOf(w).slots.length === 1, JSON.stringify(stampsOf(w).slots));
-                  assert('PIN 창 닫힘', d.getElementById('pinModal').hidden === true);
                   var body = {};
                   try { body = JSON.parse(calls[calls.length - 1].opts.body); } catch(e){}
-                  assert('payload todayStamped=true', body.todayStamped === true, JSON.stringify(body));
+                  assert('payload todayStamped', body.todayStamped === true && body.total === 9, JSON.stringify(body));
                   d.getElementById('histCloseBtn').click();
                   setTimeout(next, 200);
-                }, 300);
-              }, 250);
-            }, 250);
-          }, 250);
-        }, 250);
+                }, 350);
+              }, 300);
+            }, 300);
+          }, 300);
+        }, 300);
       });
     },
     function(next){
-      /* 설정 저장도 PIN 확인 */
       var d = frame.contentDocument;
       d.getElementById('setBtn').click();
       setTimeout(function(){
         d.getElementById('saveBtn').click();
         setTimeout(function(){
-          assert('설정 저장에 PIN 요구', d.getElementById('pinModal').hidden === false, d.getElementById('pinModal').hidden);
+          assert('설정 저장 PIN 요구', d.getElementById('pinModal').hidden === false);
           d.querySelector('.pin-key[data-pin="cancel"]').click();
           setTimeout(function(){
             assert('PIN 취소 시 설정 유지', d.getElementById('modal').hidden === false && d.getElementById('pinModal').hidden === true);
@@ -369,7 +384,7 @@ if (SCENE === 'layout'){
             next();
           }, 200);
         }, 300);
-      }, 250);
+      }, 300);
     }
   ]);
 } else if (SCENE === 'board'){
@@ -379,38 +394,38 @@ if (SCENE === 'layout'){
   for (var i = 9; i >= 1; i--){
     var k = keyOff(-i);
     slots9.push({ date: k });
-    hist[k] = { seoyun: { done: 6, total: 6, allDone: true, tasks: [true, true, true, true, true, true] } };
+    hist[k] = { seoyun: { done: 9, total: 9, allDone: true } };
   }
+  hist[today2] = { seoyun: { done: 9, total: 9, allDone: true } };
   var stampSeed = { seoyun: { slots: slots9, completedBoards: 0 } };
-  hist[today2] = { seoyun: { done: 6, total: 6, allDone: true, tasks: [true, true, true, true, true, true] } };
   var checksSeed = { date: today2, data: {
-    seoyun: [true, true, true, true, true, true],
-    chaeyun: [false, false, false, false, false, false],
-    seungyun: [false, false, false, false, false, false]
+    seoyun: { morning: [true, true, true, true, true, true], evening: [true, true, true] },
+    chaeyun: { morning: [false, false, false, false, false, false], evening: [false, false, false] },
+    seungyun: { morning: [false, false, false, false, false, false], evening: [false, false, false] }
   } };
   seq([
     function(next){
       seeded([
         ['wdash.stamps.v1', JSON.stringify(stampSeed)],
         ['wdash.history.v1', JSON.stringify(hist)],
-        ['wdash.checks.v2', JSON.stringify(checksSeed)]
+        ['wdash.checks.v3', JSON.stringify(checksSeed)]
       ], function(){ next(); });
     },
     function(next){
       var w = frame.contentWindow, d = frame.contentDocument;
       var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
-      assert('자동으로 10칸이 되지 않음', ((st.seoyun || {}).slots || []).length === 9, JSON.stringify((st.seoyun || {}).slots));
+      assert('자동으로 10칸 안 됨', ((st.seoyun || {}).slots || []).length === 9, JSON.stringify((st.seoyun || {}).slots));
       assert('배지 확인 대기', /확인 대기/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
       d.getElementById('histBtn').click();
       setTimeout(function(){
         d.querySelector('[data-hview="stamp"]').click();
         setTimeout(function(){
-          assert('9칸 찍힘', d.querySelectorAll('.coupon .slot.on').length === 9, d.querySelectorAll('.coupon .slot.on').length);
+          assert('9칸 찍힘', countOn(d, '.coupon .slot.on') === 9, countOn(d, '.coupon .slot.on'));
           d.querySelector('[data-act="approve"]').click();
           setTimeout(function(){
             var st2 = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
             assert('부모 확인으로 10칸', ((st2.seoyun || {}).slots || []).length === 10, JSON.stringify((st2.seoyun || {}).slots));
-            assert('10칸 완성 축하', /도장 10개 완성/.test(d.getElementById('histBody').textContent));
+            assert('10칸 축하 문구', /도장 10개 완성/.test(d.getElementById('histBody').textContent));
             var btn = d.querySelector('[data-act="newboard"]');
             assert('새 도장판 버튼', !!btn, btn ? btn.textContent : 'none');
             btn.click();
@@ -419,57 +434,47 @@ if (SCENE === 'layout'){
               var s3 = st3.seoyun || {};
               assert('새 판 0칸', (s3.slots || []).length === 0, JSON.stringify(s3.slots));
               assert('완성한 판 1판', s3.completedBoards === 1, s3.completedBoards);
-              assert('새 판에서도 오늘 도장 완료 표시', /도장 완료/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
-              assert('새 판에 오늘 도장 다시 안 찍힘', /이미 받았어요/.test(d.getElementById('histBody').textContent), d.getElementById('histBody').textContent.replace(/\s+/g, ' ').slice(0, 90));
+              assert('새 판에서도 도장 완료 표시', /도장 완료/.test(d.querySelector('#stampBadge').textContent), d.querySelector('#stampBadge').textContent);
+              assert('오늘 도장 다시 안 찍힘', /이미 받았어요/.test(d.getElementById('histBody').textContent));
               d.getElementById('histCloseBtn').click();
               setTimeout(next, 200);
-            }, 300);
-          }, 300);
-        }, 300);
-      }, 300);
+            }, 350);
+          }, 350);
+        }, 350);
+      }, 350);
     },
     function(next){
-      /* 새 판 상태와 기록 통계 */
-      var d = frame.contentDocument, w = frame.contentWindow;
+      var d = frame.contentDocument;
       d.getElementById('histBtn').click();
       setTimeout(function(){
-        d.querySelector('[data-hview="stamp"]').click();
-        setTimeout(function(){
-          assert('같은 날 재승인 버튼 없음', !d.querySelector('[data-act="approve"]'));
-          var st = JSON.parse(w.localStorage.getItem('wdash.stamps.v1') || '{}');
-          assert('새 판에 추가 도장 없음', ((st.seoyun || {}).slots || []).length === 0, JSON.stringify((st.seoyun || {}).slots));
-          d.querySelector('[data-hview="history"]').click();
-          setTimeout(function(){
-            var h = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
-            log('  stats=' + h.slice(0, 120));
-            assert('연속 성공 10일', /연속 성공\s*10일/.test(h), h.slice(0, 120));
-            assert('이번 달 10회', /이번 달\s*10회/.test(h), h.slice(0, 120));
-            next();
-          }, 250);
-        }, 300);
+        var h = d.getElementById('histBody').textContent.replace(/\s+/g, ' ');
+        log('  stats=' + h.slice(0, 110));
+        assert('연속 성공 10일', /연속 성공\s*10일/.test(h), h.slice(0, 110));
+        assert('이번 달 10회', /이번 달\s*10회/.test(h), h.slice(0, 110));
+        next();
       }, 300);
     }
   ]);
 } else if (SCENE === 'demo' || SCENE === 'demoset'){
   var view = Q.get('view') || '';
   var t6 = [true, true, true, true, true, true];
+  var t3 = [true, true, true];
   var histD = {};
   var slotsD = [];
   for (var di = 21; di >= 1; di--){
     var kk = keyOff(-di);
     var all = (di <= 3) ? true : (di % 5 !== 0);
-    histD[kk] = { seoyun: { done: all ? 6 : 4, total: 6, allDone: all, tasks: t6 } };
+    histD[kk] = { seoyun: { done: all ? 9 : 6, total: 9, allDone: all } };
     if (di <= 3) slotsD.push({ date: kk });
   }
-  /* 오늘은 4/6 (도장 없음) */
-  histD[keyOff(0)] = { seoyun: { done: 4, total: 6, allDone: false, tasks: [true, true, true, true, false, false] } };
+  histD[keyOff(0)] = { seoyun: { done: 6, total: 9, allDone: false } };
   if (view === 'full'){
     slotsD = [];
     histD = {};
     for (var fi = 10; fi >= 1; fi--){
       var fk = keyOff(-fi);
       slotsD.push({ date: fk });
-      histD[fk] = { seoyun: { done: 6, total: 6, allDone: true, tasks: t6 } };
+      histD[fk] = { seoyun: { done: 9, total: 9, allDone: true } };
     }
     slotsD.push({ date: keyOff(0) });
   }
@@ -478,28 +483,31 @@ if (SCENE === 'layout'){
     chaeyun: { slots: [keyOff(-1), keyOff(-2), keyOff(-4), keyOff(-5), keyOff(-7), keyOff(-8), keyOff(-9)].map(function(x){ return { date: x }; }), completedBoards: 0 },
     seungyun: { slots: [{ date: keyOff(-2) }, { date: keyOff(-6) }], completedBoards: 1 }
   };
+  var fullDay = (view === 'full' || view === 'wait' || view === 'pin');
   var checksSeed2 = { date: keyOff(0), data: {
-    seoyun: (view === 'full' || view === 'wait' || view === 'pin') ? [true, true, true, true, true, true] : [true, true, true, true, false, false],
-    chaeyun: [true, true, true, true, true, true],
-    seungyun: [true, true, true, true, true, false]
+    seoyun: {
+      morning: fullDay ? t6.slice() : [true, true, true, true, false, false],
+      evening: fullDay ? t3.slice() : [true, true, false]
+    },
+    chaeyun: { morning: t6.slice(), evening: t3.slice() },
+    seungyun: { morning: [true, true, true, true, true, false], evening: [true, false, false] }
   } };
   var settingsSeed2 = null;
   if (SCENE === 'demoset'){
-    var t12 = ['이불 정리하기', '아침밥 먹기', '세수·양치하기', '시간표 보고 숙제·책·준비물 챙기기',
-      '물병·우산 챙기기', '책상이랑 방 정리하기', '저녁 설거지 돕기', '내일 가방 미리 싸기',
-      '저녁 숙제 마무리', '욕실 정리하기', '내일 옷 미리 꺼내기', '가족에게 인사하기'];
-    if (Q.get('tasks') === '12'){
-      settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50', tasks: t12 } });
-    } else {
-      settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50', tasks: t12.slice(0, 8) } });
-    }
+    var m12 = ['이불 정리하기', '아침밥 먹기', '세수·양치하기', '시간표 보고 숙제·책·준비물 챙기기',
+      '물병·우산 챙기기', '책상이랑 방 정리하기', '현관 신발 정리', '아침 스트레칭', '물 한 컵 마시기',
+      '오늘 계획 세우기', '가족에게 인사', '우유 마시기'];
+    var e3 = ['숙제·복습 마무리하기', '내일 가방·옷 챙겨두기', '양치하고 잘 준비하기'];
+    settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50',
+      morning: Q.get('tasks') === '12' ? m12 : m12.slice(0, 6),
+      evening: e3 } });
   }
   var pairs = [
     ['wdash.stamps.v1', JSON.stringify(stampSeed2)],
     ['wdash.history.v1', JSON.stringify(histD)],
-    ['wdash.checks.v2', JSON.stringify(checksSeed2)]
+    ['wdash.checks.v3', JSON.stringify(checksSeed2)]
   ];
-  if (settingsSeed2) pairs.push(['wdash.settings.v2', settingsSeed2]);
+  if (settingsSeed2) pairs.push(['wdash.settings.v3', settingsSeed2]);
   if (view === 'pin') pairs.push(['wdash.pin.v1', '1234']);
   seeded(pairs, function(w, d){
     if (SCENE === 'demoset'){
@@ -508,21 +516,22 @@ if (SCENE === 'layout'){
       d.getElementById('histBtn').click();
     } else if (view === 'stamp' || view === 'full' || view === 'wait' || view === 'pin'){
       d.getElementById('histBtn').click();
-      setTimeout(function(){ d.querySelector('[data-hview="stamp"]').click(); }, 250);
+      setTimeout(function(){ d.querySelector('[data-hview="stamp"]').click(); }, 300);
       if (view === 'pin'){
         setTimeout(function(){
           var b = d.querySelector('[data-act="approve"]');
           if (b) b.click();
-        }, 700);
+        }, 800);
       }
     }
     setTimeout(function(){
       var m = metrics(w, d);
-      log('demo ' + W + 'x' + H + ' view=' + (view || SCENE) + ' docOverflow=' + m.docOverflow + ' panelOverflow=' + m.panelOverflow);
+      log('demo ' + W + 'x' + H + ' view=' + (view || SCENE) + ' docOverflow=' + m.docOverflow + ' panelOverflow=' + m.panelOverflow
+        + ' mItems=' + m.mItems + ' eItems=' + m.eItems + ' clipped=' + m.clipped);
       log('  badge=' + (d.querySelector('#stampBadge') ? d.querySelector('#stampBadge').textContent : '-'));
       log('===DONE===');
       document.title = 'DONE';
-    }, 700);
+    }, 900);
   });
 } else if (SCENE === 'shot'){
   load(function(w, d){

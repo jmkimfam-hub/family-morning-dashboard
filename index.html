@@ -491,6 +491,27 @@ body{
 .pin-key.fn{font-size:12px;background:#fff0f2;color:#c9576b}
 .pin-err{min-height:16px;margin:2px 0 0;font-size:11.5px;font-weight:800;color:#d9455f}
 
+/* ---------- 아침 · 저녁 나란히 ---------- */
+.check-wrap{
+  flex:1 1 auto;min-height:0;display:flex;align-items:stretch;
+}
+.check-sec{display:flex;flex-direction:column;min-height:0;min-width:0}
+.check-sec.sec-m{flex:0 0 66%;padding-right:11px}
+.check-sec.sec-e{
+  flex:1 1 0%;padding-left:11px;
+  border-left:1.5px dashed rgba(160,175,210,.38);
+}
+.check-sec .checklist{
+  flex:0 1 auto;min-height:0;
+  display:flex;flex-wrap:wrap;align-content:flex-start;
+  overflow:auto;padding:1px 0;
+}
+.check-sec .check-head h3{white-space:nowrap}
+.sec-e .check-head h3{color:#7b6bb8}
+.sec-m .check-item{width:calc(50% - 8px);margin:0 4px 6px}
+.sec-e .check-item{width:100%;flex:0 0 auto;display:flex;margin:0 0 6px}
+.sec-e .check-item .txt{-webkit-line-clamp:2}
+
 /* ---------- 설정 모달 ---------- */
 .modal-bg{
   position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:80;background:rgba(58,68,99,.46);
@@ -528,7 +549,13 @@ body{
   font-family:inherit;font-size:13px;font-weight:900;width:34px;height:34px;cursor:pointer;
 }
 .task-del:hover{background:#ffe1e6}
-.task-add-wrap{display:flex;align-items:center;margin:2px 0 4px 74px;flex-wrap:wrap}
+.task-add-wrap{display:flex;align-items:center;margin:2px 0 6px 74px;flex-wrap:wrap}
+.set-group-head{
+  display:flex;align-items:center;margin:12px 0 8px;padding-top:9px;
+  border-top:1.5px dashed #eef1f8;font-size:12.5px;font-weight:900;color:var(--ink-2);
+}
+.set-group-head:first-child{border-top:0;padding-top:0;margin-top:4px}
+.set-group-note{margin-left:auto;font-size:10.5px;font-weight:800;color:var(--ink-3)}
 .task-add-wrap .mini-btn{font-size:12px;padding:7px 12px}
 .task-note{margin-left:9px;font-size:10.5px;font-weight:700;color:var(--ink-3)}
 .set-sheet{margin-top:14px;padding-top:12px;border-top:1.5px dashed #eef1f8}
@@ -859,18 +886,25 @@ const OLD_DEFAULT_TASKS = {
   ]
 };
 
+/* 저녁 마무리 기본 3개 항목 — 설정에서 아이별로 고치고 더할 수 있다. */
+const DEFAULT_EVENING = [
+  '숙제·복습 마무리하기',
+  '내일 가방·옷 챙겨두기',
+  '양치하고 잘 준비하기'
+];
+
 const DEFAULT_KIDS = [
   {
     id:'seoyun', name:'서윤', grade:'중2', emoji:'👧', theme:'lav', time:'07:50',
-    tasks: UNIFIED_TASKS.slice()
+    morning: UNIFIED_TASKS.slice(), evening: DEFAULT_EVENING.slice()
   },
   {
     id:'chaeyun', name:'채윤', grade:'초6', emoji:'👧', theme:'rose', time:'08:10',
-    tasks: UNIFIED_TASKS.slice()
+    morning: UNIFIED_TASKS.slice(), evening: DEFAULT_EVENING.slice()
   },
   {
     id:'seungyun', name:'승윤', grade:'초3', emoji:'👦', theme:'sky', time:'08:10',
-    tasks: UNIFIED_TASKS.slice()
+    morning: UNIFIED_TASKS.slice(), evening: DEFAULT_EVENING.slice()
   }
 ];
 
@@ -1052,9 +1086,11 @@ const store = {
   del:function(k){ try { localStorage.removeItem(k); } catch(e){} }
 };
 const KEY = {
-  checks:'wdash.checks.v2',
+  checks:'wdash.checks.v3',
+  checksV2:'wdash.checks.v2',
   active:'wdash.active.v1',
-  settings:'wdash.settings.v2',
+  settings:'wdash.settings.v3',
+  settingsV2:'wdash.settings.v2',
   settingsOld:'wdash.settings.v1',
   weather:'wdash.weather.v1',
   phrase:'wdash.phrase.v1',
@@ -1064,9 +1100,11 @@ const KEY = {
   sheetUrl:'wdash.sheetUrl.v1',
   pin:'wdash.pin.v1'
 };
-/* 할 일 항목 수 제한 — 기본 6개는 그대로, 설정에서 1~12개까지 늘리고 줄일 수 있다. */
-const TASK_MIN = 1;
-const TASK_MAX = 12;
+/* 할 일 항목 수 제한 — 아침·저녁을 따로 관리한다. */
+const MORNING_MIN = 1;
+const MORNING_MAX = 12;
+const EVENING_MIN = 0;
+const EVENING_MAX = 8;
 const STAMP_SLOTS = 10;
 const HISTORY_DAYS = 180;
 
@@ -1101,7 +1139,7 @@ function isOldDefaultTasks(kidId, tasks){
 }
 
 /* v1 설정 → v2 : 출발 시각은 그대로 살리고, 예전 기본 목록이면 새 6개 항목으로 교체.
-   직접 손본 항목(custom)은 그대로 둔다. */
+   직접 손본 항목(custom)은 그대로 둔다. (v2 형식으로만 저장) */
 function migrateSettingsV1(){
   let old = null;
   try { old = JSON.parse(store.get(KEY.settingsOld) || 'null'); } catch(e){ old = null; }
@@ -1112,10 +1150,40 @@ function migrateSettingsV1(){
     if (!s || typeof s !== 'object') return;
     const row = {};
     if (typeof s.time === 'string' && /^\d{2}:\d{2}$/.test(s.time)) row.time = s.time;
-    if (Array.isArray(s.tasks) && s.tasks.length === base.tasks.length && !isOldDefaultTasks(base.id, s.tasks)){
+    if (Array.isArray(s.tasks) && s.tasks.length === base.morning.length && !isOldDefaultTasks(base.id, s.tasks)){
       row.tasks = s.tasks;
     }
     if (Object.keys(row).length) out[base.id] = row;
+  });
+  try { store.set(KEY.settingsV2, JSON.stringify(out)); } catch(e){}
+  return out;
+}
+
+/* 저장된 항목 배열이 쓸 만한지 (빈칸 없이 min~max개) 확인하고 다듬는다. */
+function validTasks(arr, min, max){
+  if (!Array.isArray(arr) || arr.length < min || arr.length > max) return null;
+  const out = [];
+  for (let i = 0; i < arr.length; i++){
+    if (typeof arr[i] !== 'string' || !arr[i].trim()) return null;
+    out.push(arr[i].trim().slice(0, 40));
+  }
+  return out;
+}
+
+/* v2(한 줄 tasks) 또는 v1 설정 → v3(아침 morning / 저녁 evening) */
+function migrateSettingsV2(){
+  let v2 = null;
+  try { v2 = JSON.parse(store.get(KEY.settingsV2) || 'null'); } catch(e){ v2 = null; }
+  if (!v2) v2 = migrateSettingsV1();
+  const out = {};
+  DEFAULT_KIDS.forEach(function(base){
+    const s = (v2 && v2[base.id]) || {};
+    const m = validTasks(s.tasks, MORNING_MIN, MORNING_MAX);
+    out[base.id] = {
+      time: (typeof s.time === 'string' && /^\d{2}:\d{2}$/.test(s.time)) ? s.time : base.time,
+      morning: m || base.morning.slice(),
+      evening: base.evening.slice()
+    };
   });
   try { store.set(KEY.settings, JSON.stringify(out)); } catch(e){}
   return out;
@@ -1124,22 +1192,27 @@ function migrateSettingsV1(){
 function loadSettings(){
   let obj = null;
   try { obj = JSON.parse(store.get(KEY.settings) || 'null'); } catch(e){ obj = null; }
-  if (!obj) obj = migrateSettingsV1();
+  if (!obj) obj = migrateSettingsV2();
   return DEFAULT_KIDS.map(function(base){
     const s = (obj && obj[base.id]) || {};
-    let tasks = base.tasks.slice();
-    if (Array.isArray(s.tasks) && s.tasks.length >= TASK_MIN && s.tasks.length <= TASK_MAX
-        && s.tasks.every(function(t){ return typeof t === 'string' && t.trim(); })){
-      tasks = s.tasks.map(function(t){ return t.trim().slice(0, 40); });
-    }
+    const morning = validTasks(s.morning, MORNING_MIN, MORNING_MAX) || base.morning.slice();
+    const evening = validTasks(s.evening, EVENING_MIN, EVENING_MAX);
     const time = (typeof s.time === 'string' && /^\d{2}:\d{2}$/.test(s.time)) ? s.time : base.time;
-    return { id: base.id, name: base.name, grade: base.grade, emoji: base.emoji, theme: base.theme, time: time, tasks: tasks };
+    return {
+      id: base.id, name: base.name, grade: base.grade, emoji: base.emoji, theme: base.theme,
+      time: time, morning: morning, evening: evening || base.evening.slice()
+    };
   });
 }
 
 function freshChecks(){
   const data = {};
-  state.kids.forEach(function(k){ data[k.id] = k.tasks.map(function(){ return false; }); });
+  state.kids.forEach(function(k){
+    data[k.id] = {
+      morning: k.morning.map(function(){ return false; }),
+      evening: k.evening.map(function(){ return false; })
+    };
+  });
   return data;
 }
 
@@ -1157,10 +1230,14 @@ function kidById(id){
 }
 
 function ensureChecks(k){
-  if (!k) return [];
+  if (!k) return { morning: [], evening: [] };
   const cur = state.checks[k.id];
-  if (!Array.isArray(cur) || cur.length !== k.tasks.length){
-    state.checks[k.id] = resizeChecks(cur, k.tasks.length);
+  if (!cur || !Array.isArray(cur.morning) || !Array.isArray(cur.evening)
+      || cur.morning.length !== k.morning.length || cur.evening.length !== k.evening.length){
+    state.checks[k.id] = {
+      morning: resizeChecks(cur && cur.morning, k.morning.length),
+      evening: resizeChecks(cur && cur.evening, k.evening.length)
+    };
   }
   return state.checks[k.id];
 }
@@ -1168,19 +1245,44 @@ function ensureChecks(k){
 function loadChecks(){
   let obj = null;
   try { obj = JSON.parse(store.get(KEY.checks) || 'null'); } catch(e){ obj = null; }
+  const data = freshChecks();
   if (obj && obj.date === dayKey() && obj.data){
-    const data = obj.data;
     state.kids.forEach(function(k){
-      data[k.id] = resizeChecks(Array.isArray(data[k.id]) ? data[k.id].map(function(v){ return v === true; }) : [], k.tasks.length);
+      const c = obj.data[k.id];
+      const m = c && Array.isArray(c.morning) ? c.morning : (Array.isArray(c) ? c : []);
+      const e = c && Array.isArray(c.evening) ? c.evening : [];
+      data[k.id] = { morning: resizeChecks(m, k.morning.length), evening: resizeChecks(e, k.evening.length) };
     });
     return data;
   }
-  return freshChecks();
+  /* 예전 v2 체크(한 줄)는 그날 아침 항목으로 옮기고 저녁은 비워 둔다. */
+  let old = null;
+  try { old = JSON.parse(store.get(KEY.checksV2) || 'null'); } catch(e){ old = null; }
+  if (old && old.date === dayKey() && old.data){
+    state.kids.forEach(function(k){
+      const m = Array.isArray(old.data[k.id]) ? old.data[k.id] : [];
+      data[k.id].morning = resizeChecks(m, k.morning.length);
+    });
+    try { store.set(KEY.checks, JSON.stringify({ date: dayKey(), data: data })); } catch(e){}
+  }
+  return data;
 }
 
 function saveChecks(){
   try { store.set(KEY.checks, JSON.stringify({ date: dayKey(), data: state.checks })); } catch(e){}
 }
+
+/* ---------- 오늘 체크 합계 도우미 ---------- */
+function countTrue(arr){
+  if (!Array.isArray(arr)) return 0;
+  let n = 0;
+  for (let i = 0; i < arr.length; i++) if (arr[i] === true) n++;
+  return n;
+}
+function morningDone(k){ return k ? countTrue(ensureChecks(k).morning) : 0; }
+function eveningDone(k){ return k ? countTrue(ensureChecks(k).evening) : 0; }
+function totalOf(k){ return k ? (k.morning.length + k.evening.length) : 0; }
+function morningAllDone(k){ return !!k && k.morning.length > 0 && morningDone(k) === k.morning.length; }
 
 /* ============================================================
    날짜별 기록 · 쿠폰 도장 · 구글 시트 전송
@@ -1206,14 +1308,18 @@ function pruneHistory(){
 function recordToday(kidId){
   const k = kidById(kidId);
   if (!k) return;
-  const arr = ensureChecks(k);
-  const total = k.tasks.length;
-  const done = arr.filter(Boolean).length;
+  const c = ensureChecks(k);
+  const m = countTrue(c.morning);
+  const e = countTrue(c.evening);
+  const total = totalOf(k);
+  const done = m + e;
   const d = dayKey();
   if (!state.history[d]) state.history[d] = {};
   state.history[d][kidId] = {
     done: done, total: total, allDone: total > 0 && done === total,
-    tasks: arr.slice(0, total)
+    morningDone: m, morningTotal: k.morning.length,
+    eveningDone: e, eveningTotal: k.evening.length,
+    morning: c.morning.slice(), evening: c.evening.slice()
   };
   pruneHistory();
   saveHistory();
@@ -1330,11 +1436,11 @@ function startNewBoard(kidId){
   return true;
 }
 
-/* 오늘 할 일을 모두 채웠는지 */
+/* 오늘 할 일(아침+저녁)을 모두 채웠는지 */
 function allDoneOf(k){
   if (!k) return false;
-  const arr = ensureChecks(k);
-  return k.tasks.length > 0 && arr.filter(Boolean).length === k.tasks.length;
+  const total = totalOf(k);
+  return total > 0 && (doneCount(k) === total);
 }
 
 /* 오늘 도장을 받았는지 (지난 판에 찍혀 보관된 경우도 포함) */
@@ -1358,9 +1464,8 @@ function postSheet(kidId){
   const k = kidById(kidId);
   if (!k) return;
   const d = dayKey();
-  const arr = ensureChecks(k);
-  const total = k.tasks.length;
-  const done = arr.filter(Boolean).length;
+  const total = totalOf(k);
+  const done = doneCount(k);
   const st = stampOf(kidId);
   const payload = {
     date: d,
@@ -1403,9 +1508,10 @@ function currentKid(){
 }
 
 function doneCount(kid){
-  const a = state.checks[kid.id];
-  if (!Array.isArray(a)) return 0;
-  return a.filter(Boolean).length;
+  if (!kid) return 0;
+  const c = state.checks[kid.id];
+  if (!c) return 0;
+  return countTrue(c.morning) + countTrue(c.evening);
 }
 
 function isWeekend(d){ const w = (d || kstNow()).getUTCDay(); return w === 0 || w === 6; }
@@ -1501,7 +1607,8 @@ function renderTabs(){
   if (!nav) return;
   nav.innerHTML = state.kids.map(function(k){
     const done = doneCount(k);
-    const full = done === k.tasks.length;
+    const total = totalOf(k);
+    const full = total > 0 && done === total;
     return '<button type="button" class="tab theme-' + k.theme + (k.id === state.active ? ' active' : '') + '"'
       + ' data-kid="' + k.id + '"'
       + ' style="--kid:var(--' + k.theme + ');--kid-soft:var(--' + k.theme + '-soft);--kid-deep:var(--' + k.theme + '-deep)"'
@@ -1509,7 +1616,7 @@ function renderTabs(){
       + '<span class="tab-avatar">' + avatarSVG(k) + '</span>'
       + '<span class="tab-body"><span class="tab-name">' + esc(k.name) + ' <em>' + esc(k.grade) + '</em></span>'
       + '<span class="tab-sub">' + esc(k.time) + ' 출발</span></span>'
-      + '<span class="tab-badge' + (full ? ' done' : '') + '">' + (full ? '완료!' : done + '/' + k.tasks.length) + '</span>'
+      + '<span class="tab-badge' + (full ? ' done' : '') + '">' + (full ? '완료!' : done + '/' + total) + '</span>'
       + '</button>';
   }).join('');
 }
@@ -1521,25 +1628,32 @@ function updateBadges(){
     const badge = btn.querySelector('.tab-badge');
     if (!badge) return;
     const done = doneCount(k);
-    const full = done === k.tasks.length;
-    const label = full ? '완료!' : done + '/' + k.tasks.length;
+    const total = totalOf(k);
+    const full = total > 0 && done === total;
+    const label = full ? '완료!' : done + '/' + total;
     if (badge.textContent !== label) badge.textContent = label;
     badge.classList.toggle('done', full);
   });
 }
 
-function renderChecklist(){
-  const k = currentKid();
-  const list = $('checklist');
-  if (!k || !list) return;
-  const arr = state.checks[k.id] || [];
-  list.innerHTML = k.tasks.map(function(t, i){
-    const on = arr[i] === true;
-    return '<button type="button" class="check-item' + (on ? ' done' : '') + '" data-i="' + i + '" aria-pressed="' + (on ? 'true' : 'false') + '">'
+function checkItemHTML(list, sec, arr){
+  return list.map(function(t, i){
+    const on = arr && arr[i] === true;
+    return '<button type="button" class="check-item' + (on ? ' done' : '') + '" data-sec="' + sec + '" data-i="' + i + '" aria-pressed="' + (on ? 'true' : 'false') + '">'
       + '<span class="box">✓</span><span class="txt">' + esc(t) + '</span></button>';
   }).join('');
-  const cc = $('checkCount');
-  if (cc) cc.textContent = doneCount(k) + '/' + k.tasks.length;
+}
+
+function renderChecklist(){
+  const k = currentKid();
+  if (!k) return;
+  const c = ensureChecks(k);
+  const mEl = $('checklistM'), eEl = $('checklistE');
+  if (mEl) mEl.innerHTML = checkItemHTML(k.morning, 'm', c.morning);
+  if (eEl) eEl.innerHTML = checkItemHTML(k.evening, 'e', c.evening);
+  const cm = $('checkCountM'), ce = $('checkCountE');
+  if (cm) cm.textContent = morningDone(k) + '/' + k.morning.length;
+  if (ce) ce.textContent = eveningDone(k) + '/' + k.evening.length;
 }
 
 function stampBadgeHTML(k){
@@ -1593,9 +1707,17 @@ function renderKid(){
     +   '<div class="count-line"><div class="countdown" id="countdown"><span id="cdPlain">–</span><span id="cdNums" style="display:none"><span id="cdH">0</span><span class="u" id="cdHU">시간</span><span id="cdM">00</span><span class="u">분</span><span id="cdS">00</span><span class="u">초</span></span></div><div class="cd-note" id="cdNote"></div></div>'
     +   '<div class="progress"><div class="bar" id="bar"></div></div>'
     + '</div>'
-    + '<div class="check-head"><h3>아침 준비 체크</h3><span class="check-count" id="checkCount">' + done + '/' + k.tasks.length + '</span>' + stampBadgeHTML(k) + '</div>'
-    + '<div class="checklist" id="checklist"></div>'
-    + '<div class="kid-foot' + (done === k.tasks.length ? ' all' : '') + '" id="kidFoot">'
+    + '<div class="check-wrap" id="checkWrap">'
+    +   '<div class="check-sec sec-m">'
+    +     '<div class="check-head"><h3>☀️ 아침 준비</h3><span class="check-count" id="checkCountM">' + morningDone(k) + '/' + k.morning.length + '</span>' + stampBadgeHTML(k) + '</div>'
+    +     '<div class="checklist" id="checklistM"></div>'
+    +   '</div>'
+    +   '<div class="check-sec sec-e">'
+    +     '<div class="check-head"><h3>🌙 저녁 마무리</h3><span class="check-count" id="checkCountE">' + eveningDone(k) + '/' + k.evening.length + '</span></div>'
+    +     '<div class="checklist" id="checklistE"></div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="kid-foot' + (totalOf(k) > 0 && done === totalOf(k) ? ' all' : '') + '" id="kidFoot">'
     +   '<span class="spark">🌈</span><span id="footText"></span></div>';
   lastFoot = '';
   cdCache = { mode:'', msg:'', label:'', note:'', h:'', m:'', s:'', hu:null, pct:-1 };
@@ -1765,7 +1887,8 @@ function updateFoot(now){
   const foot = $('kidFoot'), txt = $('footText');
   if (!foot || !txt) return;
   const done = doneCount(k);
-  const all = k.tasks.length > 0 && done === k.tasks.length;
+  const total = totalOf(k);
+  const all = total > 0 && done === total;
   foot.classList.toggle('all', all);
   let msg;
   if (all){
@@ -1773,6 +1896,7 @@ function updateFoot(now){
       ? '오늘 도장도 받았어요! 정말 잘했어 🎟️'
       : '다 했어요! 엄마·아빠 확인 받고 도장 받자 ⏳';
   }
+  else if (morningAllDone(k) && k.evening.length > 0 && eveningDone(k) === 0) msg = '☀️ 아침 준비 끝! 저녁 마무리도 기억해 둬 🌙';
   else if (isWeekend(now)) msg = '주말엔 느긋하게, 하고 싶은 일 해 보자 🌈';
   else {
     const diff = departureDate(k, now) - realMsOf(now);
@@ -1786,17 +1910,20 @@ function updateFoot(now){
 }
 
 /* ---------- 체크 ---------- */
-function toggleTask(kidId, idx){
+function toggleTask(kidId, sec, idx){
   const k = kidById(kidId);
   if (!k) return;
-  const arr = ensureChecks(k);
+  const c = ensureChecks(k);
+  const arr = (sec === 'e') ? c.evening : c.morning;
   if (idx < 0 || idx >= arr.length) return;
+  const wasMorningAll = morningAllDone(k);
+  const wasAll = allDoneOf(k);
   arr[idx] = !arr[idx];
   saveChecks();
   recordToday(kidId);
 
-  const total = k.tasks.length;
-  const done = arr.filter(Boolean).length;
+  const total = totalOf(k);
+  const done = doneCount(k);
   const all = total > 0 && done === total;
 
   renderChecklist();
@@ -1814,6 +1941,9 @@ function toggleTask(kidId, idx){
     toast(todayEarned(kidId)
       ? k.name + ' 준비 끝! 오늘 도장도 받았어 🎟️'
       : k.name + ' 준비 끝! 엄마·아빠 확인 받고 도장 받자 ⏳');
+  } else if (!wasAll && !wasMorningAll && morningAllDone(k)){
+    playFanfare(kidId);
+    toast('☀️ ' + k.name + ' 아침 준비 완료! 저녁 마무리도 화이팅 🌙');
   }
 
   postSheet(kidId);
@@ -2152,8 +2282,10 @@ function openSettings(){
   state.kids.forEach(function(k){
     draft[k.id] = {
       time: k.time,
-      tasks: k.tasks.slice(),
-      orig: k.tasks.map(function(_, i){ return i; })
+      morning: k.morning.slice(),
+      evening: k.evening.slice(),
+      origM: k.morning.map(function(_, i){ return i; }),
+      origE: k.evening.map(function(_, i){ return i; })
     };
   });
   draftKid = state.active;
@@ -2181,40 +2313,58 @@ function renderSetTabs(){
   }).join('');
 }
 
+function setGroupHTML(sec, title, icon, list, max, note){
+  let html = '<div class="set-group-head">' + icon + ' ' + title
+    + '<span class="set-group-note">' + list.length + '/' + max + '</span></div>';
+  html += list.map(function(t, i){
+    const id = 'set' + (sec === 'e' ? 'E' : 'M') + i;
+    return '<div class="set-row"><label for="' + id + '">' + (sec === 'e' ? '저녁' : '아침') + ' ' + (i + 1) + '</label>'
+      + '<input type="text" class="task-in" id="' + id + '" data-sec="' + sec + '" data-i="' + i + '" maxlength="40" value="' + esc(t) + '">'
+      + '<button type="button" class="task-del" data-del="' + sec + ':' + i + '" title="이 항목 삭제">✕</button></div>';
+  }).join('');
+  html += '<div class="task-add-wrap"><button type="button" class="mini-btn" data-add="' + sec + '">+ ' + title + ' 추가</button>'
+    + '<span class="task-note">' + note + '</span></div>';
+  return html;
+}
+
 function renderSetForm(){
   if (!draft || !draftKid) return;
   const d = draft[draftKid];
   $('setTime').value = d.time;
-  let html = d.tasks.map(function(t, i){
-    return '<div class="set-row"><label for="setTask' + i + '">할 일 ' + (i + 1) + '</label>'
-      + '<input type="text" class="task-in" id="setTask' + i + '" data-i="' + i + '" maxlength="40" value="' + esc(t) + '">'
-      + '<button type="button" class="task-del" data-del="' + i + '" title="이 항목 삭제">✕</button></div>';
-  }).join('');
-  html += '<div class="task-add-wrap"><button type="button" class="mini-btn" id="addTaskBtn">+ 할 일 추가</button>'
-    + '<span class="task-note">' + d.tasks.length + '/' + TASK_MAX + '개 · 아침·저녁 할 일을 같이 넣어도 돼요</span></div>';
-  $('setTasks').innerHTML = html;
+  $('setTasks').innerHTML =
+    setGroupHTML('m', '아침 할 일', '☀️', d.morning, MORNING_MAX, '최소 ' + MORNING_MIN + '개')
+    + setGroupHTML('e', '저녁 할 일', '🌙', d.evening, EVENING_MAX, '비워 두어도 돼요');
 }
 
-function addDraftTask(){
+function addDraftTask(sec){
   if (!draft || !draftKid) return;
   syncDraft();
   const d = draft[draftKid];
-  if (d.tasks.length >= TASK_MAX){ toast('할 일은 ' + TASK_MAX + '개까지 넣을 수 있어요'); return; }
-  d.tasks.push('');
-  d.orig.push(-1);
+  const key = (sec === 'e') ? 'evening' : 'morning';
+  const oriKey = (sec === 'e') ? 'origE' : 'origM';
+  const max = (sec === 'e') ? EVENING_MAX : MORNING_MAX;
+  if (d[key].length >= max){ toast((sec === 'e' ? '저녁' : '아침') + ' 할 일은 ' + max + '개까지 넣을 수 있어요'); return; }
+  d[key].push('');
+  d[oriKey].push(-1);
   renderSetForm();
-  const el = $('setTask' + (d.tasks.length - 1));
+  const el = $('set' + (sec === 'e' ? 'E' : 'M') + (d[key].length - 1));
   if (el && el.focus) el.focus();
 }
 
-function deleteDraftTask(i){
+function deleteDraftTask(sec, i){
   if (!draft || !draftKid) return;
   syncDraft();
   const d = draft[draftKid];
-  if (d.tasks.length <= TASK_MIN){ toast('할 일은 최소 ' + TASK_MIN + '개는 있어야 해요'); return; }
-  if (i < 0 || i >= d.tasks.length) return;
-  d.tasks.splice(i, 1);
-  d.orig.splice(i, 1);
+  const key = (sec === 'e') ? 'evening' : 'morning';
+  const oriKey = (sec === 'e') ? 'origE' : 'origM';
+  const min = (sec === 'e') ? EVENING_MIN : MORNING_MIN;
+  if (d[key].length <= min){
+    toast(min === 0 ? '저녁 할 일을 모두 지우면 저녁 체크 없이 하루를 마감해요' : '아침 할 일은 최소 1개는 있어야 해요');
+    return;
+  }
+  if (i < 0 || i >= d[key].length) return;
+  d[key].splice(i, 1);
+  d[oriKey].splice(i, 1);
   renderSetForm();
 }
 
@@ -2224,12 +2374,16 @@ function syncDraft(){
   const tEl = $('setTime');
   if (tEl && /^\d{2}:\d{2}$/.test(tEl.value)) d.time = tEl.value;
   const inputs = document.querySelectorAll('#setTasks input[type="text"]');
-  const next = d.tasks.slice();
+  const nextM = d.morning.slice();
+  const nextE = d.evening.slice();
   for (let i = 0; i < inputs.length; i++){
+    const sec = inputs[i].getAttribute('data-sec');
     const idx = Number(inputs[i].getAttribute('data-i'));
-    if (!isNaN(idx) && idx >= 0 && idx < next.length) next[idx] = inputs[i].value;
+    if (sec === 'e' && !isNaN(idx) && idx >= 0 && idx < nextE.length) nextE[idx] = inputs[i].value;
+    else if (!isNaN(idx) && idx >= 0 && idx < nextM.length) nextM[idx] = inputs[i].value;
   }
-  d.tasks = next;
+  d.morning = nextM;
+  d.evening = nextE;
 }
 
 /* 저장은 부모 비밀번호가 있으면 확인을 거친다. */
@@ -2269,16 +2423,27 @@ function saveSettings(){
   const newChecks = {};
   state.kids.forEach(function(k){
     const d = draft[k.id];
-    const tasks = d.tasks
+    const morning = d.morning
       .map(function(t){ return String(t == null ? '' : t).trim().slice(0, 40); })
       .filter(function(t){ return t.length > 0; })
-      .slice(0, TASK_MAX);
-    obj[k.id] = { time: d.time, tasks: tasks.length ? tasks : k.tasks.slice() };
-    const oldChecks = state.checks[k.id] || [];
-    newChecks[k.id] = obj[k.id].tasks.map(function(_, i){
-      const oi = d.orig[i];
-      return (typeof oi === 'number' && oi >= 0 && oldChecks[oi] === true);
-    });
+      .slice(0, MORNING_MAX);
+    const evening = d.evening
+      .map(function(t){ return String(t == null ? '' : t).trim().slice(0, 40); })
+      .filter(function(t){ return t.length > 0; })
+      .slice(0, EVENING_MAX);
+    const finalM = morning.length ? morning : k.morning.slice();
+    obj[k.id] = { time: d.time, morning: finalM, evening: evening };
+    const oldC = state.checks[k.id] || {};
+    newChecks[k.id] = {
+      morning: finalM.map(function(_, i){
+        const oi = d.origM[i];
+        return (typeof oi === 'number' && oi >= 0 && oldC.morning && oldC.morning[oi] === true);
+      }),
+      evening: evening.map(function(_, i){
+        const oi = d.origE[i];
+        return (typeof oi === 'number' && oi >= 0 && oldC.evening && oldC.evening[oi] === true);
+      })
+    };
   });
 
   store.set(KEY.settings, JSON.stringify(obj));
@@ -2288,8 +2453,13 @@ function saveSettings(){
   store.set(KEY.sheetUrl, sheetUrl);
   state.kids = loadSettings();
   state.kids.forEach(function(k){
-    state.checks[k.id] = (newChecks[k.id] && newChecks[k.id].length === k.tasks.length)
-      ? newChecks[k.id] : resizeChecks(state.checks[k.id], k.tasks.length);
+    const nc = newChecks[k.id];
+    const ok = nc && nc.morning.length === k.morning.length && nc.evening.length === k.evening.length;
+    state.checks[k.id] = ok ? nc : {
+      morning: resizeChecks(state.checks[k.id] && state.checks[k.id].morning, k.morning.length),
+      evening: resizeChecks(state.checks[k.id] && state.checks[k.id].evening, k.evening.length)
+    };
+    ensureChecks(k);
     recordToday(k.id);
   });
   saveChecks();
@@ -2309,8 +2479,10 @@ function resetDraftKid(){
   if (!base) return;
   draft[draftKid] = {
     time: base.time,
-    tasks: base.tasks.slice(),
-    orig: base.tasks.map(function(_, i){ return i; })
+    morning: base.morning.slice(),
+    evening: base.evening.slice(),
+    origM: base.morning.map(function(_, i){ return i; }),
+    origE: base.evening.map(function(_, i){ return i; })
   };
   renderSetForm();
   toast('이 아이의 설정을 기본값으로 되돌렸어요');
@@ -2459,9 +2631,9 @@ function renderStampView(k){
         + (isGift ? '<span class="gift">🎁</span>' : '<span class="num">' + (i + 1) + '</span>') + '</div>';
     }
   }
-  const arr = ensureChecks(k);
-  const done = arr.filter(Boolean).length;
-  const total = k.tasks.length;
+  const done = doneCount(k);
+  const total = totalOf(k);
+  const mDone = morningDone(k), eDone = eveningDone(k);
   const stamped = stampIndexForToday(k.id) >= 0;
   const earned = stamped || st.used.indexOf(dayKey()) >= 0;
   const all = total > 0 && done === total;
@@ -2483,7 +2655,8 @@ function renderStampView(k){
       + '<button type="button" class="btn primary" data-act="approve">✅ 오늘(' + mdToday + ') 도장 찍어주기</button></div>';
   } else {
     todayBox = '<div class="stamp-today"><b>오늘 ' + done + '/' + total + '</b>'
-      + '<p>아이가 오늘 할 일을 다 채우면 부모님 확인 후 도장을 찍을 수 있어요.</p></div>';
+      + '<p>아침 ' + mDone + '/' + k.morning.length + ' · 저녁 ' + eDone + '/' + k.evening.length
+      + ' — 아이가 아침·저녁을 모두 채우면 부모님 확인 후 도장을 찍을 수 있어요.</p></div>';
   }
   return '<div class="hist-theme" ' + kidVarStyle(k) + '>'
     + todayBox
@@ -2694,7 +2867,8 @@ function bindEvents(){
       const btn = e.target.closest ? e.target.closest('.check-item') : null;
       if (!btn) return;
       const idx = Number(btn.getAttribute('data-i'));
-      if (!isNaN(idx)) toggleTask(state.active, idx);
+      const sec = btn.getAttribute('data-sec') === 'e' ? 'e' : 'm';
+      if (!isNaN(idx)) toggleTask(state.active, sec, idx);
     });
   }
 
@@ -2738,10 +2912,14 @@ function bindEvents(){
   const setTasks = $('setTasks');
   if (setTasks){
     setTasks.addEventListener('click', function(e){
-      const add = e.target.closest ? e.target.closest('#addTaskBtn') : null;
-      if (add){ addDraftTask(); return; }
+      const add = e.target.closest ? e.target.closest('[data-add]') : null;
+      if (add){ addDraftTask(add.getAttribute('data-add') === 'e' ? 'e' : 'm'); return; }
       const del = e.target.closest ? e.target.closest('.task-del') : null;
-      if (del){ deleteDraftTask(Number(del.getAttribute('data-del'))); return; }
+      if (del){
+        const v = String(del.getAttribute('data-del') || '').split(':');
+        deleteDraftTask(v[0] === 'e' ? 'e' : 'm', Number(v[1]));
+        return;
+      }
     });
   }
 
