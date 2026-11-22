@@ -73,13 +73,13 @@ function keyOff(off){
 function md(key){ return Number(key.slice(5, 7)) + '/' + Number(key.slice(8, 10)); }
 function countOn(d, sel){ return d.querySelectorAll(sel).length; }
 function clickList(d, sel, cb){
-  var items = d.querySelectorAll(sel);
   var i = 0;
   (function go(){
+    var items = d.querySelectorAll(sel);
     if (i >= items.length){ cb(); return; }
     items[i].click();
     i++;
-    setTimeout(go, 55);
+    setTimeout(go, 60);
   })();
 }
 function metrics(w, d){
