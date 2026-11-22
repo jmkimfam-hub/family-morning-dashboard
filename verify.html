@@ -479,7 +479,7 @@ if (SCENE === 'layout'){
     seungyun: { slots: [{ date: keyOff(-2) }, { date: keyOff(-6) }], completedBoards: 1 }
   };
   var checksSeed2 = { date: keyOff(0), data: {
-    seoyun: (view === 'full' || view === 'wait') ? [true, true, true, true, true, true] : [true, true, true, true, false, false],
+    seoyun: (view === 'full' || view === 'wait' || view === 'pin') ? [true, true, true, true, true, true] : [true, true, true, true, false, false],
     chaeyun: [true, true, true, true, true, true],
     seungyun: [true, true, true, true, true, false]
   } };
@@ -500,14 +500,21 @@ if (SCENE === 'layout'){
     ['wdash.checks.v2', JSON.stringify(checksSeed2)]
   ];
   if (settingsSeed2) pairs.push(['wdash.settings.v2', settingsSeed2]);
+  if (view === 'pin') pairs.push(['wdash.pin.v1', '1234']);
   seeded(pairs, function(w, d){
     if (SCENE === 'demoset'){
       d.getElementById('setBtn').click();
     } else if (view === 'hist'){
       d.getElementById('histBtn').click();
-    } else if (view === 'stamp' || view === 'full' || view === 'wait'){
+    } else if (view === 'stamp' || view === 'full' || view === 'wait' || view === 'pin'){
       d.getElementById('histBtn').click();
       setTimeout(function(){ d.querySelector('[data-hview="stamp"]').click(); }, 250);
+      if (view === 'pin'){
+        setTimeout(function(){
+          var b = d.querySelector('[data-act="approve"]');
+          if (b) b.click();
+        }, 700);
+      }
     }
     setTimeout(function(){
       var m = metrics(w, d);
