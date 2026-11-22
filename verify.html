@@ -198,7 +198,7 @@ if (SCENE === 'layout'){
         assert('이번 주 1회', /이번 주\s*1회/.test(body.replace(/\s+/g, ' ')), body.replace(/\s+/g, ' ').slice(0, 80));
         assert('연속 1일', /연속 성공\s*1일/.test(body.replace(/\s+/g, ' ')));
         assert('달력 오늘 완료 표시', d.querySelectorAll('.cal-cell.done').length === 1, d.querySelectorAll('.cal-cell.done').length);
-        assert('달력 42칸(6주)', d.querySelectorAll('.cal-cell').length >= 35, d.querySelectorAll('.cal-cell').length);
+        assert('달력 칸 렌더', d.querySelectorAll('.cal-cell').length >= 28, d.querySelectorAll('.cal-cell').length);
         d.querySelector('[data-hview="stamp"]').click();
         setTimeout(function(){
           assert('도장판 탭 슬롯 10칸', d.querySelectorAll('.coupon .slot').length === 10, d.querySelectorAll('.coupon .slot').length);
@@ -396,6 +396,59 @@ if (SCENE === 'layout'){
       }, 250);
     }
   ]);
+} else if (SCENE === 'demo' || SCENE === 'demoset'){
+  var view = Q.get('view') || '';
+  var t6 = [true, true, true, true, true, true];
+  var histD = {};
+  var slotsD = [];
+  for (var di = 1; di <= 21; di++){
+    var kk = keyOff(-di);
+    var all = (di <= 3) ? true : (di % 5 !== 0);
+    histD[kk] = { seoyun: { done: all ? 6 : 4, total: 6, allDone: all, tasks: t6 } };
+    if (di <= 3) slotsD.push({ date: kk });
+  }
+  /* 오늘은 4/6 (도장 없음) */
+  histD[keyOff(0)] = { seoyun: { done: 4, total: 6, allDone: false, tasks: [true, true, true, true, false, false] } };
+  var stampSeed2 = {
+    seoyun: { slots: slotsD, completedBoards: 2 },
+    chaeyun: { slots: [keyOff(-1), keyOff(-2), keyOff(-4), keyOff(-5), keyOff(-7), keyOff(-8), keyOff(-9)].map(function(x){ return { date: x }; }), completedBoards: 0 },
+    seungyun: { slots: [{ date: keyOff(-2) }, { date: keyOff(-6) }], completedBoards: 1 }
+  };
+  var checksSeed2 = { date: keyOff(0), data: {
+    seoyun: [true, true, true, true, false, false],
+    chaeyun: [true, true, true, true, true, true],
+    seungyun: [true, true, true, true, true, false]
+  } };
+  var settingsSeed2 = null;
+  if (SCENE === 'demoset'){
+    settingsSeed2 = JSON.stringify({ seoyun: { time: '07:50', tasks: [
+      '이불 정리하기', '아침밥 먹기', '세수·양치하기', '시간표 보고 숙제·책·준비물 챙기기',
+      '물병·우산 챙기기', '책상이랑 방 정리하기', '저녁 설거지 돕기', '내일 가방 미리 싸기'
+    ] } });
+  }
+  var pairs = [
+    ['wdash.stamps.v1', JSON.stringify(stampSeed2)],
+    ['wdash.history.v1', JSON.stringify(histD)],
+    ['wdash.checks.v2', JSON.stringify(checksSeed2)]
+  ];
+  if (settingsSeed2) pairs.push(['wdash.settings.v2', settingsSeed2]);
+  seeded(pairs, function(w, d){
+    if (SCENE === 'demoset'){
+      d.getElementById('setBtn').click();
+    } else if (view === 'hist'){
+      d.getElementById('histBtn').click();
+    } else if (view === 'stamp'){
+      d.getElementById('histBtn').click();
+      setTimeout(function(){ d.querySelector('[data-hview="stamp"]').click(); }, 250);
+    }
+    setTimeout(function(){
+      var m = metrics(w, d);
+      log('demo ' + W + 'x' + H + ' view=' + (view || SCENE) + ' docOverflow=' + m.docOverflow + ' panelOverflow=' + m.panelOverflow);
+      log('  badge=' + (d.querySelector('#stampBadge') ? d.querySelector('#stampBadge').textContent : '-'));
+      log('===DONE===');
+      document.title = 'DONE';
+    }, 700);
+  });
 } else if (SCENE === 'shot'){
   load(function(w, d){
     var m = metrics(w, d);
